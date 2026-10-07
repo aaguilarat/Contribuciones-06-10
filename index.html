@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Contribuciones - Malpo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #e8dcd8 0%, #d4ccd0 50%, #dce8f0 100%);
+            color: #1a1a2e;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        body::before {
+            content: 'MALPO';
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-size: 36px;
+            font-weight: 900;
+            color: rgba(169, 29, 58, 0.25);
+            z-index: 0;
+            letter-spacing: 3px;
+            font-family: Arial, sans-serif;
+        }
+        
+        body::after {
+            content: 'CONSTRUCTORA E INMOBILIARIA';
+            position: fixed;
+            top: 65px;
+            right: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            color: rgba(169, 29, 58, 0.2);
+            z-index: 0;
+            letter-spacing: 1.5px;
+            font-family: Arial, sans-serif;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        h1 {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #A91D3A 0%, #7a1629 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            color: #6b4a4a;
+            font-size: 14px;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid rgba(169, 29, 58, 0.15);
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #7b5555;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .tab-btn:hover {
+            color: #A91D3A;
+        }
+        
+        .tab-btn.active {
+            color: #A91D3A;
+            border-bottom-color: #A91D3A;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .kpis {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 2rem;
+        }
+        
+        .kpi-card {
+            background: white;
+            border: 1px solid rgba(169, 29, 58, 0.15);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(169, 29, 58, 0.08);
+            transition: all 0.3s ease;
+        }
+        
+        .kpi-card:hover {
+            box-shadow: 0 8px 16px rgba(169, 29, 58, 0.15);
+            transform: translateY(-2px);
+            border-color: rgba(169, 29, 58, 0.25);
+        }
+        
+        .kpi-label {
+            font-size: 12px;
+            color: #7b5555;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        
+        .kpi-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #A91D3A;
+        }
+        
+        .kpi-value.small {
+            font-size: 14px;
+            color: #7b5555;
+        }
+        
+        .priority-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 2rem;
+        }
+        
+        .priority-btn {
+            text-align: center;
+            padding: 1.2rem;
+            border: 2px solid;
+            border-radius: 12px;
+            cursor: pointer;
+            background: white;
+            font-family: inherit;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .priority-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+        }
+        
+        .priority-btn.disabled {
+            cursor: not-allowed;
+            opacity: 1;
+        }
+        
+        .priority-btn.disabled:hover {
+            transform: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .priority-btn p { 
+            margin: 0;
+            margin-bottom: 6px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .priority-btn .amount {
+            font-weight: 700;
+            font-size: 20px;
+        }
+        
+        /* TODOS */
+        #btn-N { border-color: #9e9e9e; background: #fafafa; }
+        #btn-N .amount { color: #9e9e9e; }
+        #btn-N.selected { background: #9e9e9e; color: white; }
+        #btn-N.selected .amount { color: white; }
+        
+        #btn-B { border-color: #4caf50; background: #f8fbf7; }
+        #btn-B .amount { color: #4caf50; }
+        #btn-B.selected { background: #4caf50; color: white; }
+        #btn-B.selected .amount { color: white; }
+        
+        #btn-A { border-color: #A91D3A; background: #fef5f6; }
+        #btn-A .amount { color: #A91D3A; }
+        #btn-A.selected { background: #A91D3A; color: white; }
+        #btn-A.selected .amount { color: white; }
+        
+        #btn-U { border-color: #d32f2f; background: #ffebee; }
+        #btn-U .amount { color: #d32f2f; }
+        #btn-U.selected { background: #d32f2f; color: white; }
+        #btn-U.selected .amount { color: white; }
+        
+        /* EMBARGO */
+        #btn-embargo-N { border-color: #9e9e9e; background: #fafafa; }
+        #btn-embargo-N .amount { color: #9e9e9e; }
+        #btn-embargo-N.selected { background: #9e9e9e; color: white; }
+        #btn-embargo-N.selected .amount { color: white; }
+        
+        #btn-embargo-B { border-color: #4caf50; background: #f8fbf7; }
+        #btn-embargo-B .amount { color: #4caf50; }
+        #btn-embargo-B.selected { background: #4caf50; color: white; }
+        #btn-embargo-B.selected .amount { color: white; }
+        
+        #btn-embargo-A { border-color: #A91D3A; background: #fef5f6; }
+        #btn-embargo-A .amount { color: #A91D3A; }
+        #btn-embargo-A.selected { background: #A91D3A; color: white; }
+        #btn-embargo-A.selected .amount { color: white; }
+        
+        #btn-embargo-U { border-color: #d32f2f; background: #ffebee; }
+        #btn-embargo-U .amount { color: #d32f2f; }
+        #btn-embargo-U.selected { background: #d32f2f; color: white; }
+        #btn-embargo-U.selected .amount { color: white; }
+        
+        /* COBRO CLIENTE */
+        #btn-cobro-A { border-color: #d32f2f; background: #ffebee; }
+        #btn-cobro-A .amount { color: #d32f2f; }
+        #btn-cobro-A.selected { background: #d32f2f; color: white; }
+        #btn-cobro-A.selected .amount { color: white; }
+        
+        .filters {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+        }
+        
+        input {
+            padding: 10px 14px;
+            border: 1px solid rgba(169, 29, 58, 0.25);
+            border-radius: 8px;
+            font-size: 13px;
+            background: white;
+            color: #1a1a2e;
+            flex: 1;
+            transition: all 0.2s ease;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #A91D3A;
+            box-shadow: 0 0 0 3px rgba(169, 29, 58, 0.15);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(169, 29, 58, 0.08);
+            margin-bottom: 2rem;
+        }
+        
+        th {
+            text-align: left;
+            padding: 14px;
+            color: #A91D3A;
+            font-weight: 600;
+            font-size: 12px;
+            border-bottom: 2px solid rgba(169, 29, 58, 0.15);
+            background: linear-gradient(180deg, rgba(169, 29, 58, 0.05) 0%, rgba(169, 29, 58, 0.02) 100%);
+            user-select: none;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        th:hover {
+            background: linear-gradient(180deg, rgba(169, 29, 58, 0.1) 0%, rgba(169, 29, 58, 0.05) 100%);
+        }
+        
+        th::after {
+            content: ' ⇅';
+            color: #ccc;
+            font-size: 11px;
+            margin-left: 4px;
+        }
+        
+        th.sort-asc::after {
+            content: ' ▲';
+            color: #A91D3A;
+        }
+        
+        th.sort-desc::after {
+            content: ' ▼';
+            color: #A91D3A;
+        }
+        
+        td {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(169, 29, 58, 0.08);
+            color: #2c3e50;
+        }
+        
+        tr:hover {
+            background: rgba(169, 29, 58, 0.04);
+        }
+        
+        td.text-right {
+            text-align: right;
+            font-weight: 600;
+            color: #A91D3A;
+        }
+        
+        td.text-secondary {
+            color: #6b7a8a;
+        }
+        
+        .rol-cell {
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .rol-cell:hover {
+            color: #A91D3A;
+        }
+        
+        .toggle-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            text-align: center;
+            font-weight: bold;
+            color: #A91D3A;
+            transition: transform 0.2s;
+        }
+        
+        .toggle-icon.open {
+            transform: rotate(90deg);
+        }
+        
+        .expandible-row {
+            display: none;
+            background: #fafafa;
+        }
+        
+        .expandible-row.open {
+            display: table-row;
+        }
+        
+        .expandible-content {
+            padding: 16px;
+            font-size: 12px;
+        }
+        
+        .cuota-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .cuota-item:last-child {
+            border-bottom: none;
+        }
+        
+        .cuota-nombre {
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .cuota-valor {
+            color: #A91D3A;
+            font-weight: 600;
+        }
+        
+        h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #A91D3A;
+            margin-bottom: 1rem;
+        }
+        
+        .warning-banner {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 16px;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #856404;
+        }
+        
+        @media (max-width: 768px) {
+            .priority-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .tabs {
+                flex-direction: column;
+            }
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Control de Contribuciones</h1>
+        <p class="subtitle">Deuda por ROL — Malpo SpA</p>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('todos')">Todos los Roles</button>
+            <button class="tab-btn" onclick="switchTab('embargo')">Roles con Embargo</button>
+            <button class="tab-btn" onclick="switchTab('cobro')">Cobro Cliente</button>
+        </div>
+        
+        <!-- TAB 1: TODOS -->
+        <div id="tab-todos" class="tab-content active">
+            <div class="kpis">
+                <div class="kpi-card">
+                    <p class="kpi-label">Deuda Total</p>
+                    <p class="kpi-value" id="deudaTotal">—</p>
+                </div>
+                <div class="kpi-card">
+                    <p class="kpi-label">Deuda Vencida</p>
+                    <p class="kpi-value" id="deudaVencida">—</p>
+                </div>
+                <div class="kpi-card">
+                    <p class="kpi-label">Roles</p>
+                    <p class="kpi-value" id="totalRoles">—</p>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 2rem;">
+                <h2>Deuda por Prioridad (haz clic para filtrar)</h2>
+                <div class="priority-grid">
+                    <button id="btn-N" class="priority-btn">
+                        <p class="label">NULA</p>
+                        <div class="amount" id="debt-N">—</div>
+                    </button>
+                    <button id="btn-B" class="priority-btn">
+                        <p class="label">BAJA</p>
+                        <div class="amount" id="debt-B">—</div>
+                    </button>
+                    <button id="btn-A" class="priority-btn">
+                        <p class="label">ALTA</p>
+                        <div class="amount" id="debt-A">—</div>
+                    </button>
+                    <button id="btn-U" class="priority-btn">
+                        <p class="label">URGENTE</p>
+                        <div class="amount" id="debt-U">—</div>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="filters">
+                <input type="text" id="searchInput" placeholder="Buscar por ROL o proyecto...">
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th data-column="ROL">ROL</th>
+                            <th data-column="PROYECTO">Proyecto</th>
+                            <th data-column="COMUNA">Comuna</th>
+                            <th data-column="ESTADO">Estado</th>
+                            <th data-column="MONTO" style="text-align: right;">Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr><td colspan="5" style="text-align: center; color: #9e9e9e;">Cargando datos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- TAB 2: EMBARGO -->
+        <div id="tab-embargo" class="tab-content">
+            <div class="kpis">
+                <div class="kpi-card">
+                    <p class="kpi-label">Total Deuda Roles Embargo</p>
+                    <p class="kpi-value" id="totalEmbargoGeneral">—</p>
+                </div>
+                <div class="kpi-card">
+                    <p class="kpi-label">Deuda Vencida Embargo</p>
+                    <p class="kpi-value" id="totalEmbargoVencida">—</p>
+                </div>
+                <div class="kpi-card">
+                    <p class="kpi-label">Roles en Embargo</p>
+                    <p class="kpi-value" id="totalEmbargoRoles">—</p>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 2rem;">
+                <h2>Deuda por Prioridad (haz clic para filtrar)</h2>
+                <div class="priority-grid">
+                    <button id="btn-embargo-N" class="priority-btn">
+                        <p class="label">NULA</p>
+                        <div class="amount" id="debt-embargo-N">—</div>
+                    </button>
+                    <button id="btn-embargo-B" class="priority-btn">
+                        <p class="label">BAJA</p>
+                        <div class="amount" id="debt-embargo-B">—</div>
+                    </button>
+                    <button id="btn-embargo-A" class="priority-btn">
+                        <p class="label">ALTA</p>
+                        <div class="amount" id="debt-embargo-A">—</div>
+                    </button>
+                    <button id="btn-embargo-U" class="priority-btn">
+                        <p class="label">URGENTE</p>
+                        <div class="amount" id="debt-embargo-U">—</div>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="filters">
+                <input type="text" id="searchInputEmbargo" placeholder="Buscar por ROL o proyecto...">
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th data-column="ROL">ROL</th>
+                            <th data-column="PROYECTO">Proyecto</th>
+                            <th data-column="COMUNA">Comuna</th>
+                            <th data-column="ESTADO">Estado</th>
+                            <th data-column="MONTO" style="text-align: right;">Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBodyEmbargo">
+                        <tr><td colspan="5" style="text-align: center; color: #9e9e9e;">Cargando datos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- TAB 3: COBRO CLIENTE -->
+        <div id="tab-cobro" class="tab-content">
+            <div class="warning-banner">
+                ⚠️ <strong>Roles ya entregados</strong> — Cuotas vencidas antes de la entrega que corresponde pagar por la empresa.
+            </div>
+            
+            <div class="kpis">
+                <div class="kpi-card">
+                    <p class="kpi-label">Deuda que nos Corresponde Pagar</p>
+                    <p class="kpi-value" id="totalCobrGeneral">—</p>
+                </div>
+                <div class="kpi-card">
+                    <p class="kpi-label">Roles Entregados</p>
+                    <p class="kpi-value" id="totalCobrRoles">—</p>
+                </div>
+                <div class="kpi-card">
+                    <p class="kpi-label">Actualizado</p>
+                    <p class="kpi-value small" id="updateDateCobro">—</p>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 2rem;">
+                <h2>Cuotas a Pagar</h2>
+                <div class="priority-grid">
+                    <button id="btn-cobro-A" class="priority-btn disabled">
+                        <p class="label">CORRESPONDE PAGO</p>
+                        <div class="amount" id="debt-cobro-A">—</div>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="filters">
+                <input type="text" id="searchInputCobro" placeholder="Buscar por ROL o proyecto...">
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th data-column="ROL">ROL</th>
+                            <th data-column="PROYECTO">Proyecto</th>
+                            <th data-column="COMUNA">Comuna</th>
+                            <th data-column="ESTADO">Estado</th>
+                            <th data-column="MONTO" style="text-align: right;">Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBodyCobro">
+                        <tr><td colspan="5" style="text-align: center; color: #9e9e9e;">Cargando datos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const TODOS_ROLES = [{"ROL": "104-9", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO", "REGION": "V [REGION DE VALPARAISO]", "COMUNA": "LA CRUZ", "PROYECTO": "FRANCISCO BILBAO N 223 LA CRUZ", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 423777.0, "prio": "B"}, {"mes": "sept-26", "monto": 426874.0, "prio": "B"}, {"mes": "jun-26", "monto": 424680.0, "prio": "B"}, {"mes": "abr-26", "monto": 439634.0, "prio": "B"}, {"mes": "nov-25", "monto": 464695.0, "prio": "B"}, {"mes": "sept-25", "monto": 472839.0, "prio": "B"}, {"mes": "jun-25", "monto": 476290.0, "prio": "B"}, {"mes": "abr-25", "monto": 485431.0, "prio": "B"}, {"mes": "dic-24", "monto": 910213.0, "prio": "B"}, {"mes": "nov-24", "monto": 485656.0, "prio": "B"}, {"mes": "sept-24", "monto": 493598.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 5503687.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 5503687.0, "deuda_vencida": 5079910.0}, {"ROL": "1127-1", "EMPRESA": "CONSTRUCTORA MALPO LTDA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "LINARES", "PROYECTO": "VOLCANES 0333 - Gestión CBR - Enviar carta", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 16095.0, "prio": "B"}, {"mes": "sept-26", "monto": 16213.0, "prio": "B"}, {"mes": "jun-26", "monto": 16112.0, "prio": "B"}, {"mes": "abr-26", "monto": 16680.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 65100.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 65100.0, "deuda_vencida": 49005.0}, {"ROL": "1150-17", "EMPRESA": "CONSTRUCTORA MALPO LTDA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "LINARES", "PROYECTO": "RIOS DEL SUR 0224  NEMESIO ANTUNEZ - Gestión CBR - Revisar en CBR", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 16095.0, "prio": "B"}, {"mes": "sept-26", "monto": 16213.0, "prio": "B"}, {"mes": "jun-26", "monto": 16112.0, "prio": "B"}, {"mes": "abr-26", "monto": 16680.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 65100.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 65100.0, "deuda_vencida": 49005.0}, {"ROL": "11566-97", "EMPRESA": "INMOBILIARIA JARDINES DE VAN GOGH SPA", "REGION": "VIII [REGION DEL BIOBIO]", "COMUNA": "LOS ANGELES", "PROYECTO": "IB1 - PARQUE LOS COIHUES", "ESTADO": "PROYECTO EN VENTA", "cuotas": [{"mes": "nov-26", "monto": 5140045.0, "prio": "B"}, {"mes": "sept-26", "monto": 5177607.0, "prio": "A"}], "montos_por_prioridad": {"U": 0.0, "A": 5177607.0, "B": 5140045.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 10317652.0, "deuda_vencida": 5177607.0}, {"ROL": "1159-12", "EMPRESA": "CONSTRUCTORA MALPO LTDA.", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "LINARES", "PROYECTO": "AV C. A.LUIS CARRERA 1803- Gestión CBR - Enviar carta", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 16095.0, "prio": "B"}, {"mes": "sept-26", "monto": 16213.0, "prio": "B"}, {"mes": "jun-26", "monto": 16112.0, "prio": "B"}, {"mes": "abr-26", "monto": 16680.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 65100.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 65100.0, "deuda_vencida": 49005.0}, {"ROL": "1242-29", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITA", "REGION": "VI [REGION DEL LIBERTADOR BERNARDO OHIGGINS]", "COMUNA": "SAN FERNANDO", "PROYECTO": "CIRCUNV PONIENTE 105 VILLA LA FLORIDA (Contactar sanitaria o municipalidad para cambio de dueño / ABOGADO DE LA MUNI)", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 68056.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 68056.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 68056.0, "deuda_vencida": 0.0}, {"ROL": "1417-3", "EMPRESA": "CONSTRUCTORA MALPO LTDA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "LINARES", "PROYECTO": "AVDA LUIS CARRERA 1414  AGUAS CLARAS - - Gestión CBR - Enviar carta", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 16095.0, "prio": "B"}, {"mes": "sept-26", "monto": 16213.0, "prio": "B"}, {"mes": "jun-26", "monto": 16112.0, "prio": "B"}, {"mes": "abr-26", "monto": 16680.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 65100.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 65100.0, "deuda_vencida": 49005.0}, {"ROL": "1450-24", "EMPRESA": "CONSTRUCTORA MALPO LTDA.", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "LINARES", "PROYECTO": "MONTANA MAGICA 1926   PUERTA NORTE - 01. Contactar sanitaria o municipalidad para cambio de dueño - Enviar carta", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 16095.0, "prio": "B"}, {"mes": "sept-26", "monto": 16213.0, "prio": "B"}, {"mes": "jun-26", "monto": 16112.0, "prio": "B"}, {"mes": "abr-26", "monto": 16680.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 65100.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 65100.0, "deuda_vencida": 49005.0}, {"ROL": "1503-201", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO", "REGION": "VIII [REGION DEL BIOBIO]", "COMUNA": "LOS ANGELES", "PROYECTO": "HELIOS 450 - Gestión CBR Se traspasa al corredor ", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 1219444.0, "prio": "B"}, {"mes": "sept-26", "monto": 1228356.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 2447800.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 2447800.0, "deuda_vencida": 1228356.0}, {"ROL": "1584-244", "EMPRESA": "INMOBILIARIA E INV. MALPO LIMITADA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "CURICO", "PROYECTO": "AV. RAUQUEN EDIF. 9 2589 DP 402 CLAROS DE RAUQUEN - LISTO", "ESTADO": "REVISAR", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "1584-291", "EMPRESA": "INMOBILIARIA E INV. MALPO LIMITA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "CURICO", "PROYECTO": "AV. RAUQUEN EDIF. 7 2589 DP 202 CLAROS DE RAUQUEN - LISTO Contactar a Daniela y hacer seguimiento y agradecerle y que te envie la inscripcion  cuando la tenga", "ESTADO": "REVISAR", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "167-17", "EMPRESA": "CONSTRUCTORA MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "FDO LA GRANJA EL CULEMAR MAULE - Gestión CBR - DOÑA IGNACIA X", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 195816.0, "prio": "B"}, {"mes": "sept-26", "monto": 197247.0, "prio": "B"}, {"mes": "jun-26", "monto": 196232.0, "prio": "B"}, {"mes": "abr-26", "monto": 203143.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 792438.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 792438.0, "deuda_vencida": 596622.0}, {"ROL": "1722-85", "EMPRESA": "INMOB E INVERSIONES MALPO LIMITADA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "CURICO", "PROYECTO": "AV RAUQUEN EDF 13 Y 142589 BX 281 CLAROS DE RAUQUEN (Gestión CBR Se traspasa al corredor )", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 3492.0, "prio": "B"}, {"mes": "sept-26", "monto": 3518.0, "prio": "B"}, {"mes": "jun-26", "monto": 3500.0, "prio": "B"}, {"mes": "abr-26", "monto": 3622.0, "prio": "B"}, {"mes": "nov-25", "monto": 3706.0, "prio": "B"}, {"mes": "sept-25", "monto": 3771.0, "prio": "B"}, {"mes": "jun-25", "monto": 3795.0, "prio": "B"}, {"mes": "abr-25", "monto": 3868.0, "prio": "B"}, {"mes": "nov-24", "monto": 4002.0, "prio": "B"}, {"mes": "sept-24", "monto": 4068.0, "prio": "B"}, {"mes": "jun-24", "monto": 4085.0, "prio": "B"}, {"mes": "abr-24", "monto": 4173.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 45600.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 45600.0, "deuda_vencida": 42108.0}, {"ROL": "1722-87", "EMPRESA": "INMOB E INVERSIONES MALPO LIMITADA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "CURICO", "PROYECTO": "AV RAUQUEN EDF 13 Y 142589 BX 283 CLAROS DE RAUQUEN (HERRERA FLORES OSVALDO DE JESUS - contactar cliente - pedirlo a jacob - vendio antiguo y compro en puerta norte, no se inscribió rol a su nombre - venderia el estacionamiento?  - pedirle dominio vigente)", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 3492.0, "prio": "B"}, {"mes": "sept-26", "monto": 3518.0, "prio": "B"}, {"mes": "jun-26", "monto": 3500.0, "prio": "B"}, {"mes": "abr-26", "monto": 3622.0, "prio": "B"}, {"mes": "nov-25", "monto": 3706.0, "prio": "B"}, {"mes": "sept-25", "monto": 3771.0, "prio": "B"}, {"mes": "jun-25", "monto": 3795.0, "prio": "B"}, {"mes": "abr-25", "monto": 3868.0, "prio": "B"}, {"mes": "nov-24", "monto": 4002.0, "prio": "B"}, {"mes": "sept-24", "monto": 4068.0, "prio": "B"}, {"mes": "jun-24", "monto": 4085.0, "prio": "B"}, {"mes": "abr-24", "monto": 4173.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 45600.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 45600.0, "deuda_vencida": 42108.0}, {"ROL": "1799-2", "EMPRESA": "CONSTRUCTORA MALPO LTDA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "14 SUR 610      V JUAN PABLO II - Gestión CBR - Enviar carta", "ESTADO": "REVISAR", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "182-10", "EMPRESA": "CONSTRUCTORA MALPO LTDA.", "REGION": "VI [REGION DEL LIBERTADOR BERNARDO OHIGGINS]", "COMUNA": "CHIMBARONGO", "PROYECTO": "PJE LAS ARAUCARIAS 34 EQUIPAMIENTO - 01. Contactar sanitaria o municipalidad para cambio de dueño", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 99330.0, "prio": "B"}, {"mes": "sept-26", "monto": 100056.0, "prio": "B"}, {"mes": "jun-26", "monto": 99915.0, "prio": "B"}, {"mes": "abr-26", "monto": 103434.0, "prio": "B"}, {"mes": "nov-25", "monto": 107008.0, "prio": "B"}, {"mes": "sept-25", "monto": 108883.0, "prio": "B"}, {"mes": "jun-25", "monto": 109919.0, "prio": "B"}, {"mes": "abr-25", "monto": 112029.0, "prio": "B"}, {"mes": "nov-24", "monto": 115873.0, "prio": "B"}, {"mes": "sept-24", "monto": 117769.0, "prio": "B"}, {"mes": "jun-24", "monto": 115722.0, "prio": "B"}, {"mes": "abr-24", "monto": 118225.0, "prio": "B"}, {"mes": "nov-23", "monto": 112908.0, "prio": "B"}, {"mes": "sept-23", "monto": 115015.0, "prio": "B"}, {"mes": "jun-23", "monto": 117341.0, "prio": "B"}, {"mes": "abr-23", "monto": 120281.0, "prio": "B"}, {"mes": "nov-22", "monto": 99696.0, "prio": "B"}, {"mes": "sept-22", "monto": 102859.0, "prio": "B"}, {"mes": "jun-22", "monto": 96627.0, "prio": "B"}, {"mes": "abr-22", "monto": 100793.0, "prio": "B"}, {"mes": "nov-21", "monto": 81393.0, "prio": "B"}, {"mes": "sept-21", "monto": 83215.0, "prio": "B"}, {"mes": "jun-21", "monto": 83847.0, "prio": "B"}, {"mes": "abr-21", "monto": 85136.0, "prio": "B"}, {"mes": "nov-20", "monto": 81783.0, "prio": "B"}, {"mes": "sept-20", "monto": 83043.0, "prio": "B"}, {"mes": "jun-20", "monto": 83458.0, "prio": "B"}, {"mes": "abr-20", "monto": 84254.0, "prio": "B"}, {"mes": "nov-19", "monto": 83757.0, "prio": "B"}, {"mes": "sept-19", "monto": 84562.0, "prio": "B"}, {"mes": "jun-19", "monto": 78236.0, "prio": "B"}, {"mes": "abr-19", "monto": 79426.0, "prio": "B"}, {"mes": "nov-18", "monto": 75260.0, "prio": "B"}, {"mes": "sept-18", "monto": 76252.0, "prio": "B"}, {"mes": "jun-18", "monto": 74778.0, "prio": "B"}, {"mes": "abr-18", "monto": 75737.0, "prio": "B"}, {"mes": "nov-17", "monto": 64968.0, "prio": "B"}, {"mes": "sept-17", "monto": 65493.0, "prio": "B"}, {"mes": "jun-17", "monto": 65655.0, "prio": "B"}, {"mes": "abr-17", "monto": 66525.0, "prio": "B"}, {"mes": "nov-16", "monto": 63380.0, "prio": "B"}, {"mes": "sept-16", "monto": 64012.0, "prio": "B"}, {"mes": "jun-16", "monto": 64289.0, "prio": "B"}, {"mes": "abr-16", "monto": 65201.0, "prio": "B"}, {"mes": "nov-15", "monto": 62440.0, "prio": "B"}, {"mes": "sept-15", "monto": 63616.0, "prio": "B"}, {"mes": "jun-15", "monto": 63865.0, "prio": "B"}, {"mes": "abr-15", "monto": 65082.0, "prio": "B"}, {"mes": "nov-14", "monto": 63187.0, "prio": "B"}, {"mes": "sept-14", "monto": 64389.0, "prio": "B"}, {"mes": "jun-14", "monto": 64260.0, "prio": "B"}, {"mes": "abr-14", "monto": 65698.0, "prio": "B"}, {"mes": "nov-13", "monto": 68136.0, "prio": "B"}, {"mes": "sept-13", "monto": 69166.0, "prio": "B"}, {"mes": "jun-13", "monto": 70097.0, "prio": "B"}, {"mes": "abr-13", "monto": 70506.0, "prio": "B"}, {"mes": "nov-12", "monto": 70754.0, "prio": "B"}, {"mes": "sept-12", "monto": 71907.0, "prio": "B"}, {"mes": "jun-12", "monto": 72151.0, "prio": "B"}, {"mes": "abr-12", "monto": 72792.0, "prio": "B"}, {"mes": "nov-11", "monto": 73789.0, "prio": "B"}, {"mes": "sept-11", "monto": 74742.0, "prio": "B"}, {"mes": "jun-11", "monto": 755632.0, "prio": "B"}, {"mes": "abr-11", "monto": 75664.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 6045216.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 6045216.0, "deuda_vencida": 5945886.0}, {"ROL": "201-17", "EMPRESA": "CONSTRUCTORA MALPO LIMITADA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "CULENAR HJ SUR LT 17 - Gestión CBR - Corresponde a doña ignacia 3", "ESTADO": "REVISAR", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "201-252", "EMPRESA": "CONSTRUCTORA MALPO SPA", "REGION": "VI [REGION DEL LIBERTADOR BERNARDO OHIGGINS]", "COMUNA": "RENGO", "PROYECTO": "COLO-COLO 2100 PEAS VILLA RENKU - 01. Contactar sanitaria o municipalidad para cambio de dueño", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 127765.0, "prio": "B"}, {"mes": "sept-26", "monto": 128699.0, "prio": "B"}, {"mes": "jun-26", "monto": 128089.0, "prio": "B"}, {"mes": "abr-26", "monto": 132599.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 517152.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 517152.0, "deuda_vencida": 389387.0}, {"ROL": "206-424", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITA", "REGION": "VI [REGION DEL LIBERTADOR BERNARDO OHIGGINS]", "COMUNA": "RENGO", "PROYECTO": "HACIENDA LAS PALMAS ", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 1047053.0, "prio": "B"}, {"mes": "sept-26", "monto": 1054704.0, "prio": "B"}, {"mes": "jun-26", "monto": 1049333.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 3151090.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 3151090.0, "deuda_vencida": 2104037.0}, {"ROL": "2102-112", "EMPRESA": "CONST MALPO LTDA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "LINARES", "PROYECTO": "LOS HUMEDALES 801 - Gestión CBR- Enviar carta", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 16095.0, "prio": "B"}, {"mes": "sept-26", "monto": 16213.0, "prio": "B"}, {"mes": "jun-26", "monto": 16112.0, "prio": "B"}, {"mes": "abr-26", "monto": 16680.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 65100.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 65100.0, "deuda_vencida": 49005.0}, {"ROL": "2188-4", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITA", "REGION": "VI [REGION DEL LIBERTADOR BERNARDO OHIGGINS]", "COMUNA": "SAN FERNANDO", "PROYECTO": "C AMBROSIO OHIGGINS 065 EQUIPAMIENTO 02 (01. Contactar sanitaria o municipalidad para cambio de dueño/ ABOGADO DE LA MUNI)", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 257387.0, "prio": "B"}, {"mes": "sept-26", "monto": 259268.0, "prio": "B"}, {"mes": "jun-26", "monto": 257957.0, "prio": "B"}, {"mes": "abr-26", "monto": 267040.0, "prio": "B"}, {"mes": "nov-25", "monto": 273234.0, "prio": "B"}, {"mes": "sept-25", "monto": 278023.0, "prio": "B"}, {"mes": "jun-25", "monto": 279785.0, "prio": "B"}, {"mes": "abr-25", "monto": 285154.0, "prio": "B"}, {"mes": "nov-24", "monto": 294954.0, "prio": "B"}, {"mes": "sept-24", "monto": 299777.0, "prio": "B"}, {"mes": "jun-24", "monto": 301105.0, "prio": "B"}, {"mes": "abr-24", "monto": 307617.0, "prio": "B"}, {"mes": "nov-23", "monto": 308112.0, "prio": "B"}, {"mes": "sept-23", "monto": 313863.0, "prio": "B"}, {"mes": "jun-23", "monto": 313244.0, "prio": "B"}, {"mes": "abr-23", "monto": 321094.0, "prio": "B"}, {"mes": "dic-22", "monto": 580816.0, "prio": "B"}, {"mes": "nov-22", "monto": 320721.0, "prio": "B"}, {"mes": "sept-22", "monto": 330894.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 5850045.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 5850045.0, "deuda_vencida": 5592658.0}, {"ROL": "2706-484", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "ULMEN 385 EQ MUNICIPAL (01. Contactar sanitaria o municipalidad para cambio de dueño ", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 247995.0, "prio": "B"}, {"mes": "sept-26", "monto": 249807.0, "prio": "B"}, {"mes": "jun-26", "monto": 249009.0, "prio": "B"}, {"mes": "abr-26", "monto": 257778.0, "prio": "B"}, {"mes": "nov-25", "monto": 263206.0, "prio": "B"}, {"mes": "sept-25", "monto": 267819.0, "prio": "B"}, {"mes": "jun-25", "monto": 269965.0, "prio": "B"}, {"mes": "abr-25", "monto": 275146.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 2080725.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 2080725.0, "deuda_vencida": 1832730.0}, {"ROL": "2706-485", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "EL PEHUEN 383 EQ MUNICIPAL (01. Contactar sanitaria o municipalidad para cambio de dueño", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 133110.0, "prio": "B"}, {"mes": "sept-26", "monto": 134083.0, "prio": "B"}, {"mes": "jun-26", "monto": 133880.0, "prio": "B"}, {"mes": "abr-26", "monto": 138594.0, "prio": "B"}, {"mes": "nov-25", "monto": 141297.0, "prio": "B"}, {"mes": "sept-25", "monto": 143774.0, "prio": "B"}, {"mes": "jun-25", "monto": 145092.0, "prio": "B"}, {"mes": "abr-25", "monto": 147876.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 1117706.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 1117706.0, "deuda_vencida": 984596.0}, {"ROL": "272-176", "EMPRESA": "CONSTRUCTORA MALPO SPA", "REGION": "VI [REGION DEL LIBERTADOR BERNARDO OHIGGINS]", "COMUNA": "SAN FERNANDO", "PROYECTO": "EL ALAMO INTERIOR LT B 3 455 - Gestión CBR - Investigar rol matriz, comprar plano y presentar antecedentes a sii ", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 1558252.0, "prio": "B"}, {"mes": "sept-26", "monto": 1569640.0, "prio": "B"}, {"mes": "jun-26", "monto": 1561590.0, "prio": "B"}, {"mes": "abr-26", "monto": 1616581.0, "prio": "B"}, {"mes": "nov-25", "monto": 1653621.0, "prio": "B"}, {"mes": "sept-25", "monto": 1682602.0, "prio": "B"}, {"mes": "jun-25", "monto": 1693745.0, "prio": "B"}, {"mes": "abr-25", "monto": 1726250.0, "prio": "B"}, {"mes": "dic-24", "monto": 9279540.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 22341821.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 22341821.0, "deuda_vencida": 20783569.0}, {"ROL": "3706-232", "EMPRESA": "CONSTRUCTORA MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "CONDOMINIO 2 JOSEFA III", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 5568380.0, "prio": "B"}, {"mes": "sept-26", "monto": 5609072.0, "prio": "B"}, {"mes": "jun-26", "monto": 5580539.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 16757991.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 16757991.0, "deuda_vencida": 11189611.0}, {"ROL": "3711-238", "EMPRESA": "INMOB E INVERSIONES MALPO LIMITADA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "I32 - ALTO RUCAHUE - 2014 COLONIAL", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 126006.0, "prio": "B"}, {"mes": "sept-26", "monto": 126927.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 252933.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 252933.0, "deuda_vencida": 126927.0}, {"ROL": "4500-71", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "LOS ABEDULES 130 LT 5 ALTOS DEL MAITEN (Gestión CBR ALLENDES SANTIBÁÑEZ CLAUDIA ANGÉLICA", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 21951.0, "prio": "B"}, {"mes": "sept-26", "monto": 22112.0, "prio": "B"}, {"mes": "jun-26", "monto": 22482.0, "prio": "B"}, {"mes": "abr-26", "monto": 23275.0, "prio": "B"}, {"mes": "nov-25", "monto": 23343.0, "prio": "B"}, {"mes": "sept-25", "monto": 23752.0, "prio": "B"}, {"mes": "jun-25", "monto": 24268.0, "prio": "B"}, {"mes": "abr-25", "monto": 24734.0, "prio": "B"}, {"mes": "dic-24", "monto": 98706.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 284623.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 284623.0, "deuda_vencida": 262672.0}, {"ROL": "4500-74", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "LOS ABEDULES 148 LT 8 ALTOS DEL MAITEN (Gestión CBR MIRANDA HERNANDEZ HECTOR ANTONIO", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 22242.0, "prio": "B"}, {"mes": "sept-26", "monto": 22404.0, "prio": "B"}, {"mes": "jun-26", "monto": 22775.0, "prio": "B"}, {"mes": "abr-26", "monto": 23577.0, "prio": "B"}, {"mes": "nov-25", "monto": 23652.0, "prio": "B"}, {"mes": "sept-25", "monto": 24066.0, "prio": "B"}, {"mes": "jun-25", "monto": 24584.0, "prio": "B"}, {"mes": "abr-25", "monto": 25056.0, "prio": "B"}, {"mes": "dic-24", "monto": 100022.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 288378.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 288378.0, "deuda_vencida": 266136.0}, {"ROL": "4500-76", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "LOS ABEDULES 160 LT 10 ALTOS DEL MAITEN Revisar", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 21951.0, "prio": "B"}, {"mes": "sept-26", "monto": 22112.0, "prio": "B"}, {"mes": "jun-26", "monto": 22482.0, "prio": "B"}, {"mes": "abr-26", "monto": 23275.0, "prio": "B"}, {"mes": "nov-25", "monto": 23343.0, "prio": "B"}, {"mes": "sept-25", "monto": 23752.0, "prio": "B"}, {"mes": "jun-25", "monto": 24268.0, "prio": "B"}, {"mes": "abr-25", "monto": 24734.0, "prio": "B"}, {"mes": "dic-24", "monto": 98706.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 284623.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 284623.0, "deuda_vencida": 262672.0}, {"ROL": "4514-7", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "AVDA PRINCIPAL 384 PLANTA ELEV DE AGUA (01. Contactar sanitaria o municipalidad para cambio de dueño", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 565073.0, "prio": "B"}, {"mes": "sept-26", "monto": 569202.0, "prio": "B"}, {"mes": "jun-26", "monto": 566763.0, "prio": "B"}, {"mes": "abr-26", "monto": 586722.0, "prio": "B"}, {"mes": "nov-25", "monto": 599667.0, "prio": "B"}, {"mes": "sept-25", "monto": 610177.0, "prio": "B"}, {"mes": "jun-25", "monto": 614610.0, "prio": "B"}, {"mes": "abr-25", "monto": 626405.0, "prio": "B"}, {"mes": "dic-24", "monto": 1139188.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 5877807.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 5877807.0, "deuda_vencida": 5312734.0}, {"ROL": "4515-1", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "EL CASTANO 02084 LT 1 ALTOS DEL MAITEN Gestión CBR CABELLO LÓPEZ LISBER INÉS", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 35366.0, "prio": "B"}, {"mes": "sept-26", "monto": 35624.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 70990.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 70990.0, "deuda_vencida": 35624.0}, {"ROL": "4516-25", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "LOS ABEDULES 175 LT 25 ALTOS DEL MAITEN - Revisar", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 27764.0, "prio": "B"}, {"mes": "sept-26", "monto": 27967.0, "prio": "B"}, {"mes": "jun-26", "monto": 28308.0, "prio": "B"}, {"mes": "abr-26", "monto": 29306.0, "prio": "B"}, {"mes": "nov-25", "monto": 29511.0, "prio": "B"}, {"mes": "sept-25", "monto": 30028.0, "prio": "B"}, {"mes": "jun-25", "monto": 30586.0, "prio": "B"}, {"mes": "abr-25", "monto": 31173.0, "prio": "B"}, {"mes": "dic-24", "monto": 124940.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 359583.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 359583.0, "deuda_vencida": 331819.0}, {"ROL": "4516-27", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "PJE EL POMELO 163 LT 27 ALTOS DEL MAITEN - Gestión CBR ARIAS ARCOS SOLEDAD CONSTANZA", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 25742.0, "prio": "B"}, {"mes": "sept-26", "monto": 25930.0, "prio": "B"}, {"mes": "jun-26", "monto": 26283.0, "prio": "B"}, {"mes": "abr-26", "monto": 27208.0, "prio": "B"}, {"mes": "nov-25", "monto": 27365.0, "prio": "B"}, {"mes": "sept-25", "monto": 27845.0, "prio": "B"}, {"mes": "jun-25", "monto": 28390.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 188763.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 188763.0, "deuda_vencida": 163021.0}, {"ROL": "153-83", "EMPRESA": "CONSTRUCTORA MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "SAN CLEMENTE", "PROYECTO": "SCN -SCA VALLES DEL ALBA", "ESTADO": "PROYECTO EN VENTA", "cuotas": [{"mes": "nov-26", "monto": 2970135.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 2970135.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 2970135.0, "deuda_vencida": 0.0}, {"ROL": "567-237", "EMPRESA": "CONSTRUCTORA MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "LINARES", "PROYECTO": "LA ROSA LT 1 -E", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 9981596.0, "prio": "B"}, {"mes": "sept-26", "monto": 10054540.0, "prio": "B"}, {"mes": "jun-26", "monto": 10002832.0, "prio": "B"}, {"mes": "abr-26", "monto": 10355075.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 40394043.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 40394043.0, "deuda_vencida": 30412447.0}, {"ROL": "763-1", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "LINARES", "PROYECTO": "I65 - EDIFICIO DOÑA AGUSTINA 1°ETAPA 2019 80 DEPTOS. LINARES", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 16095.0, "prio": "B"}, {"mes": "sept-26", "monto": 16213.0, "prio": "B"}, {"mes": "jun-26", "monto": 16112.0, "prio": "B"}, {"mes": "abr-26", "monto": 16680.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 65100.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 65100.0, "deuda_vencida": 49005.0}, {"ROL": "763-2", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "LINARES", "PROYECTO": "I65 - EDIFICIO DOÑA AGUSTINA 1°ETAPA 2019 80 DEPTOS. LINARES", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 16095.0, "prio": "B"}, {"mes": "sept-26", "monto": 16213.0, "prio": "B"}, {"mes": "jun-26", "monto": 16112.0, "prio": "B"}, {"mes": "abr-26", "monto": 16680.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 65100.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 65100.0, "deuda_vencida": 49005.0}, {"ROL": "165-61", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITAD", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "PUERTAS DEL SUR ", "ESTADO": "PROYECTO EN VENTA", "cuotas": [{"mes": "nov-26", "monto": 23889779.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 23889779.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 23889779.0, "deuda_vencida": 0.0}, {"ROL": "165-62", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITAD", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "SBX - PUERTAS DEL SUR IV", "ESTADO": "PROYECTO EN VENTA", "cuotas": [{"mes": "nov-26", "monto": 3161939.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 3161939.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 3161939.0, "deuda_vencida": 0.0}, {"ROL": "8806-187", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "7 MED ORIENTE E 3744 EQUIP 1 DONA JOSEFA III - TRASPASADO A MUNICIPALIDAD", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 346332.0, "prio": "B"}, {"mes": "sept-26", "monto": 348863.0, "prio": "B"}, {"mes": "jun-26", "monto": 347374.0, "prio": "B"}, {"mes": "abr-26", "monto": 359606.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 1402175.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 1402175.0, "deuda_vencida": 1055843.0}, {"ROL": "167-332", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LI", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "DOÑA IGNACIA IX", "ESTADO": "PROYECTO EN VENTA", "cuotas": [{"mes": "nov-26", "monto": 609264.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 609264.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 609264.0, "deuda_vencida": 0.0}, {"ROL": "168-213", "EMPRESA": "CONSTRUCTORA MALPO LIMITADA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "BODEGA CENTRAL", "ESTADO": "PATRIMONIO MALPO", "cuotas": [{"mes": "nov-26", "monto": 690812.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 690812.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 690812.0, "deuda_vencida": 0.0}, {"ROL": "8806-188", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "8 ORIENTE A 3745 EQUIP 2 DONA JOSEFA III - TRASPASADO A MUNICIPALIDAD", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 135693.0, "prio": "B"}, {"mes": "sept-26", "monto": 136684.0, "prio": "B"}, {"mes": "jun-26", "monto": 136287.0, "prio": "B"}, {"mes": "abr-26", "monto": 141086.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 549750.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 549750.0, "deuda_vencida": 414057.0}, {"ROL": "913-22", "EMPRESA": "CONSTRUCTORA MALPO LTDA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "SAN CLEMENTE", "PROYECTO": "CALLE 2 1268 - 01. Contactar sanitaria o municipalidad para cambio de dueño", "ESTADO": "REVISAR", "cuotas": [{"mes": "nov-26", "monto": 53792.0, "prio": "B"}, {"mes": "sept-26", "monto": 54185.0, "prio": "B"}, {"mes": "jun-26", "monto": 54338.0, "prio": "B"}, {"mes": "abr-26", "monto": 56251.0, "prio": "B"}, {"mes": "nov-25", "monto": 57789.0, "prio": "B"}, {"mes": "sept-25", "monto": 58802.0, "prio": "B"}, {"mes": "jun-25", "monto": 59526.0, "prio": "B"}, {"mes": "abr-25", "monto": 60668.0, "prio": "B"}, {"mes": "nov-24", "monto": 63156.0, "prio": "B"}, {"mes": "sept-24", "monto": 64189.0, "prio": "B"}, {"mes": "jun-24", "monto": 64915.0, "prio": "B"}, {"mes": "abr-24", "monto": 66319.0, "prio": "B"}, {"mes": "nov-23", "monto": 68730.0, "prio": "B"}, {"mes": "sept-23", "monto": 70013.0, "prio": "B"}, {"mes": "jun-23", "monto": 70358.0, "prio": "B"}, {"mes": "abr-23", "monto": 72121.0, "prio": "B"}, {"mes": "nov-22", "monto": 67130.0, "prio": "B"}, {"mes": "sept-22", "monto": 69260.0, "prio": "B"}, {"mes": "jun-22", "monto": 68003.0, "prio": "B"}, {"mes": "abr-22", "monto": 70935.0, "prio": "B"}, {"mes": "nov-21", "monto": 64332.0, "prio": "B"}, {"mes": "sept-21", "monto": 65772.0, "prio": "B"}, {"mes": "jun-21", "monto": 65969.0, "prio": "B"}, {"mes": "abr-21", "monto": 66985.0, "prio": "B"}, {"mes": "nov-20", "monto": 39481.0, "prio": "B"}, {"mes": "sept-20", "monto": 40090.0, "prio": "B"}, {"mes": "jun-20", "monto": 40037.0, "prio": "B"}, {"mes": "abr-20", "monto": 40418.0, "prio": "B"}, {"mes": "nov-19", "monto": 60530.0, "prio": "B"}, {"mes": "sept-19", "monto": 61112.0, "prio": "B"}, {"mes": "jun-19", "monto": 61376.0, "prio": "B"}, {"mes": "abr-19", "monto": 62310.0, "prio": "B"}, {"mes": "nov-18", "monto": 62901.0, "prio": "B"}, {"mes": "sept-18", "monto": 63729.0, "prio": "B"}, {"mes": "jun-18", "monto": 63697.0, "prio": "B"}, {"mes": "abr-18", "monto": 64514.0, "prio": "B"}, {"mes": "nov-17", "monto": 69351.0, "prio": "B"}, {"mes": "sept-17", "monto": 69912.0, "prio": "B"}, {"mes": "jun-17", "monto": 70437.0, "prio": "B"}, {"mes": "abr-17", "monto": 71368.0, "prio": "B"}, {"mes": "nov-16", "monto": 46806.0, "prio": "B"}, {"mes": "sept-16", "monto": 47273.0, "prio": "B"}, {"mes": "jun-16", "monto": 47261.0, "prio": "B"}, {"mes": "abr-16", "monto": 47932.0, "prio": "B"}, {"mes": "nov-15", "monto": 47089.0, "prio": "B"}, {"mes": "sept-15", "monto": 47977.0, "prio": "B"}, {"mes": "jun-15", "monto": 47902.0, "prio": "B"}, {"mes": "abr-15", "monto": 48814.0, "prio": "B"}, {"mes": "nov-14", "monto": 47695.0, "prio": "B"}, {"mes": "sept-14", "monto": 48603.0, "prio": "B"}, {"mes": "jun-14", "monto": 48211.0, "prio": "B"}, {"mes": "abr-14", "monto": 49290.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 3049654.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 3049654.0, "deuda_vencida": 2995862.0}, {"ROL": "1177-7", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "S/PROYECTO", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "1181-18", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "LOTA 2095 EQUIPAM DONA IGNACIA VIII (ISABEL.CORNEJO@COMUNADEMAULE.CL) CAMBIO DE DUEÑO", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "201-129", "EMPRESA": "CONSTRUCTORA MALPO SPA", "REGION": "VI [REGION DEL LIBERTADOR BERNARDO OHIGGINS]", "COMUNA": "RENGO", "PROYECTO": "SCE - VILLA RENKU II SCE", "ESTADO": "PROYECTO EN VENTA", "cuotas": [{"mes": "nov-26", "monto": 15690570.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 15690570.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 15690570.0, "deuda_vencida": 0.0}, {"ROL": "201-131", "EMPRESA": "CONSTRUCTORA MALPO SPA", "REGION": "VI [REGION DEL LIBERTADOR BERNARDO OHIGGINS]", "COMUNA": "RENGO", "PROYECTO": "SCB - VILLA RENKU (PROCESO DE ELIMINACIÓN)", "ESTADO": "EMBARGO/ELIMINACION", "cuotas": [{"mes": "nov-26", "monto": 8919381.0, "prio": "B"}, {"mes": "sept-26", "monto": 8984562.0, "prio": "B"}, {"mes": "jun-26", "monto": 8938423.0, "prio": "B"}, {"mes": "abr-26", "monto": 9253184.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 36095550.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 36095550.0, "deuda_vencida": 27176169.0}, {"ROL": "1227-14", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "VI [REGION DEL LIBERTADOR BERNARDO OHIGGINS]", "COMUNA": "SAN FERNANDO", "PROYECTO": "SBT - VILLA LA FLORIDA II 158 VIV. SAN FDO. DS19", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 28660.0, "prio": "B"}, {"mes": "sept-26", "monto": 28869.0, "prio": "B"}, {"mes": "jun-26", "monto": 28742.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 86271.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 86271.0, "deuda_vencida": 57611.0}, {"ROL": "1241-5", "EMPRESA": "NUNEZ VARGAS NATALIA ANDREA", "REGION": "VI [REGION DEL LIBERTADOR BERNARDO OHIGGINS]", "COMUNA": "SAN FERNANDO", "PROYECTO": "SBT - VILLA LA FLORIDA II 158 VIV. SAN FDO. DS19", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 28660.0, "prio": "B"}, {"mes": "sept-26", "monto": 28869.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 57529.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 57529.0, "deuda_vencida": 28869.0}, {"ROL": "201-636", "EMPRESA": "CONSTRUCTORA MALPO SPA", "REGION": "VI [REGION DEL LIBERTADOR BERNARDO OHIGGINS]", "COMUNA": "RENGO", "PROYECTO": "SCM - PARQUE ROSARIO", "ESTADO": "PROYECTO EN VENTA", "cuotas": [{"mes": "nov-26", "monto": 1437517.0, "prio": "B"}, {"mes": "sept-26", "monto": 1448022.0, "prio": "A"}, {"mes": "jun-26", "monto": 1440629.0, "prio": "A"}, {"mes": "abr-26", "monto": 1491360.0, "prio": "A"}], "montos_por_prioridad": {"U": 0.0, "A": 4380011.0, "B": 1437517.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 5817528.0, "deuda_vencida": 4380011.0}, {"ROL": "201-83", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "SAN RAMON HJ 5 LT 1 (TERRENO DETRÁS IA4 - SCJ)", "ESTADO": "PATRIMONIO MALPO", "cuotas": [{"mes": "nov-26", "monto": 1545568.0, "prio": "B"}, {"mes": "sept-26", "monto": 1556862.0, "prio": "B"}, {"mes": "jun-25", "monto": 1678903.0, "prio": "B"}, {"mes": "abr-25", "monto": 1711123.0, "prio": "B"}, {"mes": "nov-24", "monto": 764971.0, "prio": "B"}, {"mes": "sept-24", "monto": 777481.0, "prio": "B"}, {"mes": "jun-24", "monto": 713049.0, "prio": "B"}, {"mes": "abr-24", "monto": 728473.0, "prio": "B"}, {"mes": "nov-23", "monto": 665506.0, "prio": "B"}, {"mes": "sept-23", "monto": 677928.0, "prio": "B"}, {"mes": "jun-23", "monto": 617047.0, "prio": "B"}, {"mes": "abr-23", "monto": 632511.0, "prio": "B"}, {"mes": "nov-22", "monto": 576480.0, "prio": "B"}, {"mes": "sept-22", "monto": 594765.0, "prio": "B"}, {"mes": "jun-22", "monto": 532700.0, "prio": "B"}, {"mes": "abr-22", "monto": 555667.0, "prio": "B"}, {"mes": "nov-21", "monto": 444070.0, "prio": "B"}, {"mes": "sept-21", "monto": 454013.0, "prio": "B"}, {"mes": "jun-21", "monto": 455371.0, "prio": "B"}, {"mes": "abr-21", "monto": 462376.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 16144864.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 16144864.0, "deuda_vencida": 14599296.0}, {"ROL": "201-90", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "SAN RAMON HJ 2 LOTE RESTO HJ 2", "ESTADO": "PATRIMONIO MALPO", "cuotas": [{"mes": "nov-26", "monto": 1280950.0, "prio": "B"}, {"mes": "sept-26", "monto": 1290311.0, "prio": "B"}, {"mes": "jun-25", "monto": 1391281.0, "prio": "B"}, {"mes": "abr-25", "monto": 1417981.0, "prio": "B"}, {"mes": "nov-24", "monto": 515384.0, "prio": "B"}, {"mes": "sept-24", "monto": 523813.0, "prio": "B"}, {"mes": "jun-24", "monto": 481234.0, "prio": "B"}, {"mes": "abr-24", "monto": 491644.0, "prio": "B"}, {"mes": "nov-23", "monto": 443310.0, "prio": "B"}, {"mes": "sept-23", "monto": 451585.0, "prio": "B"}, {"mes": "jun-23", "monto": 411312.0, "prio": "B"}, {"mes": "abr-23", "monto": 421621.0, "prio": "B"}, {"mes": "nov-22", "monto": 384558.0, "prio": "B"}, {"mes": "sept-22", "monto": 396755.0, "prio": "B"}, {"mes": "jun-22", "monto": 355644.0, "prio": "B"}, {"mes": "abr-22", "monto": 370977.0, "prio": "B"}, {"mes": "nov-21", "monto": 293718.0, "prio": "B"}, {"mes": "sept-21", "monto": 300295.0, "prio": "B"}, {"mes": "jun-21", "monto": 301193.0, "prio": "B"}, {"mes": "abr-21", "monto": 305826.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 11829392.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 11829392.0, "deuda_vencida": 10548442.0}, {"ROL": "1403-13", "EMPRESA": "AYALA BRAVO PAULINA ESTEFANIA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "SBX - PUERTAS DEL SUR IV 87 VIVIENDAS INM", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "1403-15", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "SBX - PUERTAS DEL SUR IV 87 VIVIENDAS INM", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "213-90", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "PARRAL", "PROYECTO": "IA5 - SAN PEDRO V", "ESTADO": "PROYECTO EN VENTA", "cuotas": [{"mes": "nov-26", "monto": 348499.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 348499.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 348499.0, "deuda_vencida": 0.0}, {"ROL": "1403-16", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "SBX - PUERTAS DEL SUR IV 87 VIVIENDAS INM", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "1403-17", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "SBX - PUERTAS DEL SUR IV 87 VIVIENDAS INM", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "1403-2", "EMPRESA": "MEZA CACERES YERKO ANDRES", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "SBX - PUERTAS DEL SUR IV 87 VIVIENDAS INM", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "1403-4", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "SBX - PUERTAS DEL SUR IV 87 VIVIENDAS INM", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "1403-7", "EMPRESA": "RODRIGUEZ AGUILERA ALEX MAURICIO", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "SBX - PUERTAS DEL SUR IV 87 VIVIENDAS INM", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "2706-230", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITAD", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "VICUNA MACKENNA 1652 LOTE B 5 EL MAITEN", "ESTADO": "EMBARGO", "cuotas": [{"mes": "nov-26", "monto": 6242592.0, "prio": "B"}, {"mes": "sept-26", "monto": 6288212.0, "prio": "B"}, {"mes": "jun-26", "monto": 6256369.0, "prio": "U"}, {"mes": "abr-26", "monto": 6476684.0, "prio": "U"}, {"mes": "dic-25", "monto": 13150884.0, "prio": "B"}, {"mes": "nov-25", "monto": 6624254.0, "prio": "B"}, {"mes": "sept-25", "monto": 6740354.0, "prio": "B"}, {"mes": "nov-24", "monto": 8411037.0, "prio": "B"}, {"mes": "sept-24", "monto": 8548593.0, "prio": "B"}, {"mes": "jun-24", "monto": 8583342.0, "prio": "B"}, {"mes": "abr-24", "monto": 8769005.0, "prio": "B"}, {"mes": "nov-23", "monto": 8368587.0, "prio": "B"}, {"mes": "sept-23", "monto": 8524792.0, "prio": "B"}, {"mes": "jun-23", "monto": 8511404.0, "prio": "B"}, {"mes": "abr-23", "monto": 8724705.0, "prio": "B"}, {"mes": "dic-22", "monto": 12560331.0, "prio": "B"}], "montos_por_prioridad": {"U": 12733053.0, "A": 0.0, "B": 120048092.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 132781145.0, "deuda_vencida": 126538553.0}, {"ROL": "2706-231", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITAD", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "V MACKENNA LT B 6 1651652 LOTE B 6 EL MAITEN", "ESTADO": "EMBARGO", "cuotas": [{"mes": "nov-26", "monto": 9310130.0, "prio": "B"}, {"mes": "sept-26", "monto": 9378167.0, "prio": "B"}, {"mes": "jun-26", "monto": 9330439.0, "prio": "U"}, {"mes": "abr-26", "monto": 9659005.0, "prio": "U"}, {"mes": "dic-25", "monto": 19612690.0, "prio": "B"}, {"mes": "nov-25", "monto": 9879313.0, "prio": "B"}, {"mes": "sept-25", "monto": 10052463.0, "prio": "B"}, {"mes": "nov-24", "monto": 12545885.0, "prio": "B"}, {"mes": "sept-24", "monto": 12751065.0, "prio": "B"}, {"mes": "jun-24", "monto": 12802657.0, "prio": "B"}, {"mes": "abr-24", "monto": 13079588.0, "prio": "B"}, {"mes": "dic-23", "monto": 29445840.0, "prio": "B"}, {"mes": "nov-23", "monto": 12481899.0, "prio": "B"}, {"mes": "sept-23", "monto": 12714883.0, "prio": "B"}, {"mes": "jun-23", "monto": 12694696.0, "prio": "B"}], "montos_por_prioridad": {"U": 18989444.0, "A": 0.0, "B": 176749276.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 195738720.0, "deuda_vencida": 186428590.0}, {"ROL": "2706-233", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "VICUNA MACKENNA 1652 LOTE B 8 EL MAITEN", "ESTADO": "EMBARGO", "cuotas": [{"mes": "nov-26", "monto": 5819771.0, "prio": "B"}, {"mes": "sept-26", "monto": 5862301.0, "prio": "B"}, {"mes": "jun-26", "monto": 5832649.0, "prio": "U"}, {"mes": "abr-26", "monto": 6038042.0, "prio": "U"}, {"mes": "nov-25", "monto": 6175587.0, "prio": "B"}, {"mes": "sept-25", "monto": 6283824.0, "prio": "B"}], "montos_por_prioridad": {"U": 11870691.0, "A": 0.0, "B": 24141483.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 36012174.0, "deuda_vencida": 30192403.0}, {"ROL": "1403-8", "EMPRESA": "SEPULVEDA SEPULVEDA DIEGO ENRIQUE", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "SBX - PUERTAS DEL SUR IV 87 VIVIENDAS INM", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "1404-11", "EMPRESA": "SEPULVEDA SALAS CAROLINA DE LA PAZ", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "SBX - PUERTAS DEL SUR IV 87 VIVIENDAS INM", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "1404-12", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "SBX - PUERTAS DEL SUR IV 87 VIVIENDAS INM", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "1404-14", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "SBX - PUERTAS DEL SUR IV 87 VIVIENDAS INM", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "1404-18", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "SBX - PUERTAS DEL SUR IV 87 VIVIENDAS INM", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "1404-3", "EMPRESA": "RETAMAL PARRA BRYAN JULIAN", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "SBX - PUERTAS DEL SUR IV 87 VIVIENDAS INM", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "1405-7", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "SBX - PUERTAS DEL SUR IV 87 VIVIENDAS INM", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "1407-2", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "SBX - PUERTAS DEL SUR IV 87 VIVIENDAS INM", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "1408-2", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "SBX - PUERTAS DEL SUR IV 87 VIVIENDAS INM (LOCAL COMERCIAL)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 67965.0, "prio": "B"}, {"mes": "sept-26", "monto": 68462.0, "prio": "B"}, {"mes": "jun-26", "monto": 68109.0, "prio": "B"}, {"mes": "abr-26", "monto": 70508.0, "prio": "B"}, {"mes": "nov-25", "monto": 72119.0, "prio": "B"}, {"mes": "sept-25", "monto": 73383.0, "prio": "B"}, {"mes": "jun-25", "monto": 73873.0, "prio": "B"}, {"mes": "abr-25", "monto": 75292.0, "prio": "B"}, {"mes": "dic-24", "monto": 153357.0, "prio": "B"}, {"mes": "nov-24", "monto": 77889.0, "prio": "B"}, {"mes": "sept-24", "monto": 79162.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 880119.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 880119.0, "deuda_vencida": 812154.0}, {"ROL": "1408-3", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "SBX - PUERTAS DEL SUR IV 87 VIVIENDAS INM (LOCAL COMERCIAL)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 63365.0, "prio": "B"}, {"mes": "sept-26", "monto": 63828.0, "prio": "B"}, {"mes": "jun-26", "monto": 63500.0, "prio": "B"}, {"mes": "abr-26", "monto": 65736.0, "prio": "B"}, {"mes": "nov-25", "monto": 67238.0, "prio": "B"}, {"mes": "sept-25", "monto": 68417.0, "prio": "B"}, {"mes": "jun-25", "monto": 68874.0, "prio": "B"}, {"mes": "abr-25", "monto": 70196.0, "prio": "B"}, {"mes": "dic-24", "monto": 142977.0, "prio": "B"}, {"mes": "nov-24", "monto": 72617.0, "prio": "B"}, {"mes": "sept-24", "monto": 73805.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 820553.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 820553.0, "deuda_vencida": 757188.0}, {"ROL": "1408-4", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "SBX - PUERTAS DEL SUR IV 87 VIVIENDAS INM (LOCAL COMERCIAL)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 53338.0, "prio": "B"}, {"mes": "sept-26", "monto": 53728.0, "prio": "B"}, {"mes": "jun-26", "monto": 53451.0, "prio": "B"}, {"mes": "abr-26", "monto": 55333.0, "prio": "B"}, {"mes": "nov-25", "monto": 56598.0, "prio": "B"}, {"mes": "sept-25", "monto": 57590.0, "prio": "B"}, {"mes": "jun-25", "monto": 57976.0, "prio": "B"}, {"mes": "abr-25", "monto": 59088.0, "prio": "B"}, {"mes": "dic-24", "monto": 120351.0, "prio": "B"}, {"mes": "nov-24", "monto": 61126.0, "prio": "B"}, {"mes": "sept-24", "monto": 62125.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 690704.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 690704.0, "deuda_vencida": 637366.0}, {"ROL": "1409-9", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MAULE", "PROYECTO": "PEAS", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 238490.0, "prio": "B"}, {"mes": "sept-26", "monto": 240233.0, "prio": "B"}, {"mes": "jun-26", "monto": 239502.0, "prio": "B"}, {"mes": "abr-26", "monto": 247936.0, "prio": "B"}, {"mes": "nov-25", "monto": 252062.0, "prio": "B"}, {"mes": "sept-25", "monto": 256480.0, "prio": "B"}, {"mes": "jun-25", "monto": 258191.0, "prio": "B"}, {"mes": "abr-25", "monto": 263146.0, "prio": "B"}, {"mes": "dic-24", "monto": 213685.0, "prio": "B"}, {"mes": "nov-24", "monto": 127734.0, "prio": "B"}, {"mes": "sept-24", "monto": 129823.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 2467282.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 2467282.0, "deuda_vencida": 2228792.0}, {"ROL": "1527-20", "EMPRESA": "CONSTRUCTORA MALPO LTDA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MOLINA", "PROYECTO": "PJE 10 1165 DOCTOR HURTADO - TERRENO TOMADO ", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 42865.0, "prio": "B"}, {"mes": "sept-26", "monto": 43178.0, "prio": "B"}, {"mes": "jun-26", "monto": 42941.0, "prio": "B"}, {"mes": "abr-26", "monto": 44453.0, "prio": "B"}, {"mes": "nov-25", "monto": 45468.0, "prio": "B"}, {"mes": "sept-25", "monto": 46266.0, "prio": "B"}, {"mes": "jun-25", "monto": 46574.0, "prio": "B"}, {"mes": "abr-25", "monto": 47468.0, "prio": "B"}, {"mes": "nov-24", "monto": 49107.0, "prio": "B"}, {"mes": "sept-24", "monto": 49910.0, "prio": "B"}, {"mes": "jun-24", "monto": 50229.0, "prio": "B"}, {"mes": "abr-24", "monto": 51316.0, "prio": "B"}, {"mes": "nov-23", "monto": 50386.0, "prio": "B"}, {"mes": "sept-23", "monto": 51327.0, "prio": "B"}, {"mes": "jun-23", "monto": 51166.0, "prio": "B"}, {"mes": "abr-23", "monto": 52449.0, "prio": "B"}, {"mes": "nov-22", "monto": 49743.0, "prio": "B"}, {"mes": "sept-22", "monto": 51320.0, "prio": "B"}, {"mes": "jun-22", "monto": 50412.0, "prio": "B"}, {"mes": "abr-22", "monto": 52585.0, "prio": "B"}, {"mes": "nov-21", "monto": 57076.0, "prio": "B"}, {"mes": "sept-21", "monto": 58353.0, "prio": "B"}, {"mes": "jun-21", "monto": 58529.0, "prio": "B"}, {"mes": "abr-21", "monto": 59429.0, "prio": "B"}, {"mes": "nov-20", "monto": 57419.0, "prio": "B"}, {"mes": "sept-20", "monto": 58303.0, "prio": "B"}, {"mes": "jun-20", "monto": 58534.0, "prio": "B"}, {"mes": "abr-20", "monto": 59092.0, "prio": "B"}, {"mes": "nov-19", "monto": 58722.0, "prio": "B"}, {"mes": "sept-19", "monto": 59286.0, "prio": "B"}, {"mes": "jun-19", "monto": 60228.0, "prio": "B"}, {"mes": "abr-19", "monto": 61145.0, "prio": "B"}, {"mes": "nov-18", "monto": 61534.0, "prio": "B"}, {"mes": "sept-18", "monto": 62344.0, "prio": "B"}, {"mes": "jun-18", "monto": 60436.0, "prio": "B"}, {"mes": "abr-18", "monto": 61210.0, "prio": "B"}, {"mes": "nov-17", "monto": 49214.0, "prio": "B"}, {"mes": "sept-17", "monto": 49612.0, "prio": "B"}, {"mes": "jun-17", "monto": 49885.0, "prio": "B"}, {"mes": "abr-17", "monto": 50545.0, "prio": "B"}, {"mes": "dic-16", "monto": 199064.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 2319123.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 2319123.0, "deuda_vencida": 2276258.0}, {"ROL": "162-13", "EMPRESA": "SOC CONSTR MALPO LTDA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "CONSTITUCION", "PROYECTO": "PRIETO LT A- 2 1105", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 187450.0, "prio": "B"}, {"mes": "sept-26", "monto": 188820.0, "prio": "B"}, {"mes": "jun-26", "monto": 188422.0, "prio": "B"}, {"mes": "abr-26", "monto": 195058.0, "prio": "B"}, {"mes": "nov-25", "monto": 197569.0, "prio": "B"}, {"mes": "sept-25", "monto": 201032.0, "prio": "B"}, {"mes": "jun-25", "monto": 202376.0, "prio": "B"}, {"mes": "abr-25", "monto": 206259.0, "prio": "B"}, {"mes": "nov-24", "monto": 212691.0, "prio": "B"}, {"mes": "sept-24", "monto": 216170.0, "prio": "B"}, {"mes": "jun-24", "monto": 217036.0, "prio": "B"}, {"mes": "abr-24", "monto": 221730.0, "prio": "B"}, {"mes": "nov-23", "monto": 229424.0, "prio": "B"}, {"mes": "sept-23", "monto": 233707.0, "prio": "B"}, {"mes": "jun-23", "monto": 233328.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 3131072.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 3131072.0, "deuda_vencida": 2943622.0}, {"ROL": "2154-34", "EMPRESA": "INMB. INV. MALPO LTDA", "REGION": "VI [REGION DEL LIBERTADOR BERNARDO OHIGGINS]", "COMUNA": "SAN FERNANDO", "PROYECTO": "PEAS", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 115970.0, "prio": "B"}, {"mes": "sept-26", "monto": 116818.0, "prio": "B"}, {"mes": "jun-26", "monto": 108525.0, "prio": "B"}, {"mes": "abr-26", "monto": 112347.0, "prio": "B"}, {"mes": "nov-25", "monto": 107578.0, "prio": "B"}, {"mes": "sept-25", "monto": 109464.0, "prio": "B"}, {"mes": "jun-25", "monto": 103186.0, "prio": "B"}, {"mes": "abr-25", "monto": 105167.0, "prio": "B"}, {"mes": "nov-24", "monto": 102128.0, "prio": "B"}, {"mes": "sept-24", "monto": 103798.0, "prio": "B"}, {"mes": "jun-24", "monto": 98194.0, "prio": "B"}, {"mes": "abr-24", "monto": 100318.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 1283493.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 1283493.0, "deuda_vencida": 1167523.0}, {"ROL": "2198-5", "EMPRESA": "CONSTRUCTORA MALPO SPA", "REGION": "VI [REGION DEL LIBERTADOR BERNARDO OHIGGINS]", "COMUNA": "SAN FERNANDO", "PROYECTO": "SBU - MANSO DE VELASCO III 154 VIV. DS19 SAN FDO.", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 28660.0, "prio": "B"}, {"mes": "sept-26", "monto": 28869.0, "prio": "B"}, {"mes": "jun-26", "monto": 28742.0, "prio": "B"}, {"mes": "abr-26", "monto": 29755.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 116026.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 116026.0, "deuda_vencida": 87366.0}, {"ROL": "251-40", "EMPRESA": "CONSTRUCTORA MALPO LTDA", "REGION": "VI [REGION DEL LIBERTADOR BERNARDO OHIGGINS]", "COMUNA": "CHIMBARONGO", "PROYECTO": "PEAS", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 73262.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 73262.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 73262.0, "deuda_vencida": 0.0}, {"ROL": "2706-227", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN MELIPILLA (IA1)", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "2706-234", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "VICUNA MACKENNA 1652 LOTE B 9 EL MAITEN", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 2472760.0, "prio": "B"}, {"mes": "sept-26", "monto": 2490831.0, "prio": "B"}, {"mes": "jun-26", "monto": 2478511.0, "prio": "B"}, {"mes": "abr-26", "monto": 2565790.0, "prio": "B"}, {"mes": "nov-25", "monto": 2623972.0, "prio": "B"}, {"mes": "sept-25", "monto": 2669961.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 15301825.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 15301825.0, "deuda_vencida": 12829065.0}, {"ROL": "2706-405", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 65968.0, "prio": "B"}, {"mes": "sept-26", "monto": 66450.0, "prio": "B"}, {"mes": "jun-26", "monto": 66595.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 199013.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 199013.0, "deuda_vencida": 133045.0}, {"ROL": "2706-406", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 68502.0, "prio": "B"}, {"mes": "sept-26", "monto": 69003.0, "prio": "B"}, {"mes": "jun-26", "monto": 69134.0, "prio": "B"}, {"mes": "abr-26", "monto": 71568.0, "prio": "B"}, {"mes": "nov-25", "monto": 72740.0, "prio": "B"}, {"mes": "sept-25", "monto": 74015.0, "prio": "B"}, {"mes": "jun-25", "monto": 74866.0, "prio": "B"}, {"mes": "abr-25", "monto": 76303.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 576131.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 576131.0, "deuda_vencida": 507629.0}, {"ROL": "2706-407", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 69769.0, "prio": "B"}, {"mes": "sept-26", "monto": 70279.0, "prio": "B"}, {"mes": "jun-26", "monto": 70403.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 210451.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 210451.0, "deuda_vencida": 140682.0}, {"ROL": "2706-409", "EMPRESA": "PEREZ PEREZ LILIER", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 69769.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 69769.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 69769.0, "deuda_vencida": 0.0}, {"ROL": "2706-462", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "PROYECTO EN VENTA", "cuotas": [{"mes": "nov-26", "monto": 73569.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 73569.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 73569.0, "deuda_vencida": 0.0}, {"ROL": "2706-412", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 34766.0, "prio": "B"}, {"mes": "sept-26", "monto": 35020.0, "prio": "B"}, {"mes": "jun-26", "monto": 35326.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 105112.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 105112.0, "deuda_vencida": 70346.0}, {"ROL": "2706-426", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 36032.0, "prio": "B"}, {"mes": "sept-26", "monto": 36295.0, "prio": "B"}, {"mes": "jun-26", "monto": 36596.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 108923.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 108923.0, "deuda_vencida": 72891.0}, {"ROL": "2706-429", "EMPRESA": "GUTIERREZ CASTRO JAIME IVAN", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "2706-430", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 71035.0, "prio": "B"}, {"mes": "sept-26", "monto": 71554.0, "prio": "B"}, {"mes": "jun-26", "monto": 71672.0, "prio": "B"}, {"mes": "abr-26", "monto": 74196.0, "prio": "B"}, {"mes": "nov-25", "monto": 75429.0, "prio": "B"}, {"mes": "sept-25", "monto": 76750.0, "prio": "B"}, {"mes": "jun-25", "monto": 77620.0, "prio": "B"}, {"mes": "abr-25", "monto": 79110.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 597366.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 597366.0, "deuda_vencida": 526331.0}, {"ROL": "2706-431", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 71035.0, "prio": "B"}, {"mes": "sept-26", "monto": 71554.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 142589.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 142589.0, "deuda_vencida": 71554.0}, {"ROL": "2706-432", "EMPRESA": "CONTRERAS ORELLANA CRISTOBAL ANDRES", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 71035.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 71035.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 71035.0, "deuda_vencida": 0.0}, {"ROL": "2706-434", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 50917.0, "prio": "B"}, {"mes": "sept-26", "monto": 51290.0, "prio": "B"}, {"mes": "jun-26", "monto": 51511.0, "prio": "B"}, {"mes": "abr-26", "monto": 53325.0, "prio": "B"}, {"mes": "nov-25", "monto": 54080.0, "prio": "B"}, {"mes": "sept-25", "monto": 55028.0, "prio": "B"}, {"mes": "jun-25", "monto": 55754.0, "prio": "B"}, {"mes": "abr-25", "monto": 56824.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 428729.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 428729.0, "deuda_vencida": 377812.0}, {"ROL": "2706-437", "EMPRESA": "NILO MARTINEZ JUAN MAURICIO", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 35399.0, "prio": "B"}, {"mes": "sept-26", "monto": 35657.0, "prio": "B"}, {"mes": "jun-26", "monto": 35960.0, "prio": "B"}, {"mes": "abr-26", "monto": 37226.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 144242.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 144242.0, "deuda_vencida": 108843.0}, {"ROL": "2706-438", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 46800.0, "prio": "B"}, {"mes": "sept-26", "monto": 47142.0, "prio": "B"}, {"mes": "jun-26", "monto": 47386.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 141328.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 141328.0, "deuda_vencida": 94528.0}, {"ROL": "2706-439", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 86554.0, "prio": "B"}, {"mes": "sept-26", "monto": 87186.0, "prio": "B"}, {"mes": "jun-26", "monto": 87224.0, "prio": "B"}, {"mes": "abr-26", "monto": 90296.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 351260.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 351260.0, "deuda_vencida": 264706.0}, {"ROL": "2706-440", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 73569.0, "prio": "B"}, {"mes": "sept-26", "monto": 74106.0, "prio": "B"}, {"mes": "jun-26", "monto": 74211.0, "prio": "B"}, {"mes": "abr-26", "monto": 76825.0, "prio": "B"}, {"mes": "nov-25", "monto": 78116.0, "prio": "B"}, {"mes": "sept-25", "monto": 79486.0, "prio": "B"}, {"mes": "jun-25", "monto": 80375.0, "prio": "B"}, {"mes": "abr-25", "monto": 81917.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 618605.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 618605.0, "deuda_vencida": 545036.0}, {"ROL": "2706-441", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 73569.0, "prio": "B"}, {"mes": "sept-26", "monto": 74106.0, "prio": "B"}, {"mes": "jun-26", "monto": 74211.0, "prio": "B"}, {"mes": "abr-26", "monto": 76825.0, "prio": "B"}, {"mes": "nov-25", "monto": 78116.0, "prio": "B"}, {"mes": "sept-25", "monto": 79486.0, "prio": "B"}, {"mes": "jun-25", "monto": 80375.0, "prio": "B"}, {"mes": "abr-25", "monto": 81917.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 618605.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 618605.0, "deuda_vencida": 545036.0}, {"ROL": "2706-442", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 73569.0, "prio": "B"}, {"mes": "sept-26", "monto": 74106.0, "prio": "B"}, {"mes": "jun-26", "monto": 74211.0, "prio": "B"}, {"mes": "abr-26", "monto": 76825.0, "prio": "B"}, {"mes": "nov-25", "monto": 78116.0, "prio": "B"}, {"mes": "sept-25", "monto": 79486.0, "prio": "B"}, {"mes": "jun-25", "monto": 80375.0, "prio": "B"}, {"mes": "abr-25", "monto": 81917.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 618605.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 618605.0, "deuda_vencida": 545036.0}, {"ROL": "2706-454", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 87504.0, "prio": "B"}, {"mes": "sept-26", "monto": 88143.0, "prio": "B"}, {"mes": "jun-26", "monto": 88176.0, "prio": "B"}, {"mes": "abr-26", "monto": 91281.0, "prio": "B"}, {"mes": "nov-25", "monto": 92904.0, "prio": "B"}, {"mes": "sept-25", "monto": 94531.0, "prio": "B"}, {"mes": "jun-25", "monto": 95521.0, "prio": "B"}, {"mes": "abr-25", "monto": 97354.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 735414.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 735414.0, "deuda_vencida": 647910.0}, {"ROL": "2706-458", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 73569.0, "prio": "B"}, {"mes": "sept-26", "monto": 74106.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 147675.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 147675.0, "deuda_vencida": 74106.0}, {"ROL": "2706-459", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 73569.0, "prio": "B"}, {"mes": "sept-26", "monto": 74106.0, "prio": "B"}, {"mes": "jun-26", "monto": 74211.0, "prio": "B"}, {"mes": "abr-26", "monto": 76825.0, "prio": "B"}, {"mes": "nov-25", "monto": 78116.0, "prio": "B"}, {"mes": "sept-25", "monto": 79486.0, "prio": "B"}, {"mes": "jun-25", "monto": 80375.0, "prio": "B"}, {"mes": "abr-25", "monto": 81917.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 618605.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 618605.0, "deuda_vencida": 545036.0}, {"ROL": "2706-460", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 73569.0, "prio": "B"}, {"mes": "sept-26", "monto": 74106.0, "prio": "B"}, {"mes": "jun-26", "monto": 74211.0, "prio": "B"}, {"mes": "abr-26", "monto": 76825.0, "prio": "B"}, {"mes": "nov-25", "monto": 78116.0, "prio": "B"}, {"mes": "sept-25", "monto": 79486.0, "prio": "B"}, {"mes": "jun-25", "monto": 80375.0, "prio": "B"}, {"mes": "abr-25", "monto": 81917.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 618605.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 618605.0, "deuda_vencida": 545036.0}, {"ROL": "2706-461", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 73569.0, "prio": "B"}, {"mes": "sept-26", "monto": 74106.0, "prio": "B"}, {"mes": "jun-26", "monto": 74211.0, "prio": "B"}, {"mes": "abr-26", "monto": 76825.0, "prio": "B"}, {"mes": "nov-25", "monto": 78116.0, "prio": "B"}, {"mes": "sept-25", "monto": 79486.0, "prio": "B"}, {"mes": "jun-25", "monto": 80375.0, "prio": "B"}, {"mes": "abr-25", "monto": 81917.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 618605.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 618605.0, "deuda_vencida": 545036.0}, {"ROL": "2706-463", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 65652.0, "prio": "B"}, {"mes": "sept-26", "monto": 66132.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 131784.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 131784.0, "deuda_vencida": 66132.0}, {"ROL": "2706-466", "EMPRESA": "ROJAS MORENO MARIA PILAR", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 36032.0, "prio": "B"}, {"mes": "sept-26", "monto": 36295.0, "prio": "B"}, {"mes": "jun-26", "monto": 36596.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 108923.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 108923.0, "deuda_vencida": 72891.0}, {"ROL": "2706-472", "EMPRESA": "PINEDA BURGOS EDUARDO JOSE", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 36032.0, "prio": "B"}, {"mes": "sept-26", "monto": 36295.0, "prio": "B"}, {"mes": "jun-26", "monto": 36596.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 108923.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 108923.0, "deuda_vencida": 72891.0}, {"ROL": "2706-481", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 79903.0, "prio": "B"}, {"mes": "sept-26", "monto": 80486.0, "prio": "B"}, {"mes": "jun-26", "monto": 80559.0, "prio": "B"}, {"mes": "abr-26", "monto": 83395.0, "prio": "B"}, {"mes": "nov-25", "monto": 84838.0, "prio": "B"}, {"mes": "sept-25", "monto": 86325.0, "prio": "B"}, {"mes": "jun-25", "monto": 87259.0, "prio": "B"}, {"mes": "abr-25", "monto": 88933.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 671698.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 671698.0, "deuda_vencida": 591795.0}, {"ROL": "2706-486", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 67868.0, "prio": "B"}, {"mes": "sept-26", "monto": 68364.0, "prio": "B"}, {"mes": "jun-26", "monto": 68498.0, "prio": "B"}, {"mes": "abr-26", "monto": 70910.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 275640.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 275640.0, "deuda_vencida": 207772.0}, {"ROL": "2706-487", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 68502.0, "prio": "B"}, {"mes": "sept-26", "monto": 69003.0, "prio": "B"}, {"mes": "jun-26", "monto": 69134.0, "prio": "B"}, {"mes": "abr-26", "monto": 71568.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 278207.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 278207.0, "deuda_vencida": 209705.0}, {"ROL": "2706-488", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 68502.0, "prio": "B"}, {"mes": "sept-26", "monto": 69003.0, "prio": "B"}, {"mes": "jun-26", "monto": 69134.0, "prio": "B"}, {"mes": "abr-26", "monto": 71568.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 278207.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 278207.0, "deuda_vencida": 209705.0}, {"ROL": "2706-489", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 68502.0, "prio": "B"}, {"mes": "sept-26", "monto": 69003.0, "prio": "B"}, {"mes": "jun-26", "monto": 69134.0, "prio": "B"}, {"mes": "abr-26", "monto": 71568.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 278207.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 278207.0, "deuda_vencida": 209705.0}, {"ROL": "2706-490", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 68502.0, "prio": "B"}, {"mes": "sept-26", "monto": 69003.0, "prio": "B"}, {"mes": "jun-26", "monto": 69134.0, "prio": "B"}, {"mes": "abr-26", "monto": 71568.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 278207.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 278207.0, "deuda_vencida": 209705.0}, {"ROL": "2706-491", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 68502.0, "prio": "B"}, {"mes": "sept-26", "monto": 69003.0, "prio": "B"}, {"mes": "jun-26", "monto": 69134.0, "prio": "B"}, {"mes": "abr-26", "monto": 71568.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 278207.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 278207.0, "deuda_vencida": 209705.0}, {"ROL": "2706-492", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 68502.0, "prio": "B"}, {"mes": "sept-26", "monto": 69003.0, "prio": "B"}, {"mes": "jun-26", "monto": 69134.0, "prio": "B"}, {"mes": "abr-26", "monto": 71568.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 278207.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 278207.0, "deuda_vencida": 209705.0}, {"ROL": "2706-510", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "PROYECTO EN VENTA", "cuotas": [{"mes": "nov-26", "monto": 68502.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 68502.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 68502.0, "deuda_vencida": 0.0}, {"ROL": "2706-493", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 68502.0, "prio": "B"}, {"mes": "sept-26", "monto": 69003.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 137505.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 137505.0, "deuda_vencida": 69003.0}, {"ROL": "2706-494", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 68502.0, "prio": "B"}, {"mes": "sept-26", "monto": 69003.0, "prio": "B"}, {"mes": "jun-26", "monto": 69134.0, "prio": "B"}, {"mes": "abr-26", "monto": 71568.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 278207.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 278207.0, "deuda_vencida": 209705.0}, {"ROL": "2706-495", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 82437.0, "prio": "B"}, {"mes": "sept-26", "monto": 83040.0, "prio": "B"}, {"mes": "jun-26", "monto": 83098.0, "prio": "B"}, {"mes": "abr-26", "monto": 86025.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 334600.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 334600.0, "deuda_vencida": 252163.0}, {"ROL": "2706-496", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 79270.0, "prio": "B"}, {"mes": "sept-26", "monto": 79850.0, "prio": "B"}, {"mes": "jun-26", "monto": 79924.0, "prio": "B"}, {"mes": "abr-26", "monto": 82739.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 321783.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 321783.0, "deuda_vencida": 242513.0}, {"ROL": "2706-497", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 70085.0, "prio": "B"}, {"mes": "sept-26", "monto": 70598.0, "prio": "B"}, {"mes": "jun-26", "monto": 70721.0, "prio": "B"}, {"mes": "abr-26", "monto": 73211.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 284615.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 284615.0, "deuda_vencida": 214530.0}, {"ROL": "2706-498", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 70085.0, "prio": "B"}, {"mes": "sept-26", "monto": 70598.0, "prio": "B"}, {"mes": "jun-26", "monto": 70721.0, "prio": "B"}, {"mes": "abr-26", "monto": 73211.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 284615.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 284615.0, "deuda_vencida": 214530.0}, {"ROL": "2706-499", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 69769.0, "prio": "B"}, {"mes": "sept-26", "monto": 70279.0, "prio": "B"}, {"mes": "jun-26", "monto": 70403.0, "prio": "B"}, {"mes": "abr-26", "monto": 72883.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 283334.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 283334.0, "deuda_vencida": 213565.0}, {"ROL": "2706-500", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 83387.0, "prio": "B"}, {"mes": "sept-26", "monto": 83996.0, "prio": "B"}, {"mes": "jun-26", "monto": 84050.0, "prio": "B"}, {"mes": "abr-26", "monto": 87010.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 338443.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 338443.0, "deuda_vencida": 255056.0}, {"ROL": "2706-502", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 80853.0, "prio": "B"}, {"mes": "sept-26", "monto": 81444.0, "prio": "B"}, {"mes": "jun-26", "monto": 81512.0, "prio": "B"}, {"mes": "abr-26", "monto": 84382.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 328191.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 328191.0, "deuda_vencida": 247338.0}, {"ROL": "3706-207", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "TERRENO DOÑA JOSEFA NORTE-ORIENTE", "ESTADO": "EMBARGO", "cuotas": [{"mes": "nov-26", "monto": 2273434.0, "prio": "B"}, {"mes": "sept-26", "monto": 2290048.0, "prio": "B"}, {"mes": "jun-26", "monto": 2278580.0, "prio": "B"}, {"mes": "abr-26", "monto": 2358819.0, "prio": "B"}, {"mes": "nov-25", "monto": 2412909.0, "prio": "U"}, {"mes": "sept-25", "monto": 2455200.0, "prio": "U"}, {"mes": "jun-25", "monto": 2471831.0, "prio": "B"}, {"mes": "abr-25", "monto": 2519268.0, "prio": "B"}, {"mes": "nov-24", "monto": 2606453.0, "prio": "B"}, {"mes": "sept-24", "monto": 2649081.0, "prio": "B"}, {"mes": "jun-24", "monto": 2660029.0, "prio": "B"}], "montos_por_prioridad": {"U": 4868109.0, "A": 0.0, "B": 22107543.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 26975652.0, "deuda_vencida": 24702218.0}, {"ROL": "3706-209", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "TERRENO DOÑA JOSEFA NORTE-ORIENTE", "ESTADO": "EMBARGO", "cuotas": [{"mes": "nov-26", "monto": 827164.0, "prio": "B"}, {"mes": "sept-26", "monto": 833209.0, "prio": "B"}, {"mes": "jun-26", "monto": 829230.0, "prio": "B"}, {"mes": "abr-26", "monto": 858431.0, "prio": "B"}, {"mes": "nov-25", "monto": 878228.0, "prio": "U"}, {"mes": "sept-25", "monto": 893620.0, "prio": "U"}, {"mes": "jun-25", "monto": 899823.0, "prio": "U"}, {"mes": "abr-25", "monto": 917092.0, "prio": "U"}, {"mes": "nov-24", "monto": 949007.0, "prio": "B"}, {"mes": "sept-24", "monto": 964527.0, "prio": "B"}, {"mes": "jun-24", "monto": 968722.0, "prio": "B"}, {"mes": "abr-24", "monto": 989677.0, "prio": "B"}, {"mes": "dic-23", "monto": 3061545.0, "prio": "B"}, {"mes": "nov-23", "monto": 446705.0, "prio": "B"}, {"mes": "sept-23", "monto": 455043.0, "prio": "B"}], "montos_por_prioridad": {"U": 3588763.0, "A": 0.0, "B": 11183260.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 14772023.0, "deuda_vencida": 13944859.0}, {"ROL": "3706-218", "EMPRESA": "INMOB E INVERSIONES MALPO LTDA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "I84 - LOTEO DOÑA JOSEFA - CASAS", "ESTADO": "PROYECTO EN VENTA", "cuotas": [{"mes": "nov-26", "monto": 167579.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 167579.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 167579.0, "deuda_vencida": 0.0}, {"ROL": "2706-503", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 77686.0, "prio": "B"}, {"mes": "sept-26", "monto": 78254.0, "prio": "B"}, {"mes": "jun-26", "monto": 78337.0, "prio": "B"}, {"mes": "abr-26", "monto": 81096.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 315373.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 315373.0, "deuda_vencida": 237687.0}, {"ROL": "3706-220", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "LOTE 4 Reserva  Lircay - H.ABDALA", "ESTADO": "SOLICITUD H.ABDALA", "cuotas": [{"mes": "nov-26", "monto": 2592952.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 2592952.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 2592952.0, "deuda_vencida": 0.0}, {"ROL": "2706-504", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 68185.0, "prio": "B"}, {"mes": "sept-26", "monto": 68683.0, "prio": "B"}, {"mes": "jun-26", "monto": 68816.0, "prio": "B"}, {"mes": "abr-26", "monto": 71240.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 276924.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 276924.0, "deuda_vencida": 208739.0}, {"ROL": "3706-231", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "I84 - CONDOMINIO DOÑA JOSEFA II", "ESTADO": "PROYECTO EN VENTA", "cuotas": [{"mes": "nov-26", "monto": 1916248.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 1916248.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 1916248.0, "deuda_vencida": 0.0}, {"ROL": "2706-505", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 71352.0, "prio": "B"}, {"mes": "sept-26", "monto": 71873.0, "prio": "B"}, {"mes": "jun-26", "monto": 71990.0, "prio": "B"}, {"mes": "abr-26", "monto": 74524.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 289739.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 289739.0, "deuda_vencida": 218387.0}, {"ROL": "3709-458", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "I830 - NEYEN EDIFICIOS", "ESTADO": "PROYECTO EN VENTA", "cuotas": [{"mes": "nov-26", "monto": 2002861.0, "prio": "B"}, {"mes": "sept-26", "monto": 2017497.0, "prio": "B"}, {"mes": "jun-26", "monto": 2007430.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 6027788.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 6027788.0, "deuda_vencida": 4024927.0}, {"ROL": "2706-506", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 68502.0, "prio": "B"}, {"mes": "sept-26", "monto": 69003.0, "prio": "B"}, {"mes": "jun-26", "monto": 69134.0, "prio": "B"}, {"mes": "abr-26", "monto": 71568.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 278207.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 278207.0, "deuda_vencida": 209705.0}, {"ROL": "3711-10", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "IA3 - PROYECTO CAMINO AL AGUA", "ESTADO": "PROYECTO EN VENTA", "cuotas": [{"mes": "nov-26", "monto": 1894983.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 1894983.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 1894983.0, "deuda_vencida": 0.0}, {"ROL": "2706-507", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 68502.0, "prio": "B"}, {"mes": "sept-26", "monto": 69003.0, "prio": "B"}, {"mes": "jun-26", "monto": 69134.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 206639.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 206639.0, "deuda_vencida": 138137.0}, {"ROL": "3711-44", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "EDIFICIO CORPORATIVO", "ESTADO": "PATRIMONIO MALPO", "cuotas": [{"mes": "nov-26", "monto": 1720631.0, "prio": "B"}, {"mes": "sept-26", "monto": 1733205.0, "prio": "B"}, {"mes": "jun-26", "monto": 1724599.0, "prio": "B"}, {"mes": "abr-26", "monto": 1785329.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 6963764.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 6963764.0, "deuda_vencida": 5243133.0}, {"ROL": "3711-79", "EMPRESA": "INMOB E INVERSIONES MALPO LIMITADA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "EDIFICIO CORPORATIVO", "ESTADO": "PATRIMONIO MALPO", "cuotas": [{"mes": "nov-26", "monto": 4986066.0, "prio": "B"}, {"mes": "sept-26", "monto": 5022503.0, "prio": "B"}, {"mes": "jun-26", "monto": 4996985.0, "prio": "B"}, {"mes": "abr-26", "monto": 5172951.0, "prio": "B"}, {"mes": "nov-25", "monto": 5291364.0, "prio": "B"}, {"mes": "sept-25", "monto": 5384104.0, "prio": "B"}, {"mes": "jun-25", "monto": 5420296.0, "prio": "B"}, {"mes": "abr-25", "monto": 5524319.0, "prio": "B"}, {"mes": "nov-24", "monto": 5715171.0, "prio": "B"}, {"mes": "sept-24", "monto": 5808639.0, "prio": "B"}, {"mes": "jun-24", "monto": 5832252.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 59154650.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 59154650.0, "deuda_vencida": 54168584.0}, {"ROL": "3875-7", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITAD", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "I85/IB6 -  ALTO MANQUE - LOTEO+CONDOMINIOS", "ESTADO": "PROYECTO EN VENTA", "cuotas": [{"mes": "nov-26", "monto": 11076162.0, "prio": "B"}, {"mes": "sept-26", "monto": 11157104.0, "prio": "A"}], "montos_por_prioridad": {"U": 0.0, "A": 11157104.0, "B": 11076162.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 22233266.0, "deuda_vencida": 11157104.0}, {"ROL": "2706-508", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 68502.0, "prio": "B"}, {"mes": "sept-26", "monto": 69003.0, "prio": "B"}, {"mes": "jun-26", "monto": 69134.0, "prio": "B"}, {"mes": "abr-26", "monto": 71568.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 278207.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 278207.0, "deuda_vencida": 209705.0}, {"ROL": "2706-509", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 68502.0, "prio": "B"}, {"mes": "sept-26", "monto": 69003.0, "prio": "B"}, {"mes": "jun-26", "monto": 69134.0, "prio": "B"}, {"mes": "abr-26", "monto": 71568.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 278207.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 278207.0, "deuda_vencida": 209705.0}, {"ROL": "2706-511", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 68502.0, "prio": "B"}, {"mes": "sept-26", "monto": 69003.0, "prio": "B"}, {"mes": "jun-26", "monto": 69134.0, "prio": "B"}, {"mes": "abr-26", "monto": 71568.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 278207.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 278207.0, "deuda_vencida": 209705.0}, {"ROL": "2706-512", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 68502.0, "prio": "B"}, {"mes": "sept-26", "monto": 69003.0, "prio": "B"}, {"mes": "jun-26", "monto": 69134.0, "prio": "B"}, {"mes": "abr-26", "monto": 71568.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 278207.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 278207.0, "deuda_vencida": 209705.0}, {"ROL": "2706-513", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 68502.0, "prio": "B"}, {"mes": "sept-26", "monto": 69003.0, "prio": "B"}, {"mes": "jun-26", "monto": 69134.0, "prio": "B"}, {"mes": "abr-26", "monto": 71568.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 278207.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 278207.0, "deuda_vencida": 209705.0}, {"ROL": "2706-514", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 68502.0, "prio": "B"}, {"mes": "sept-26", "monto": 69003.0, "prio": "B"}, {"mes": "jun-26", "monto": 69134.0, "prio": "B"}, {"mes": "abr-26", "monto": 71568.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 278207.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 278207.0, "deuda_vencida": 209705.0}, {"ROL": "2706-515", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 68502.0, "prio": "B"}, {"mes": "sept-26", "monto": 69003.0, "prio": "B"}, {"mes": "jun-26", "monto": 69134.0, "prio": "B"}, {"mes": "abr-26", "monto": 71568.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 278207.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 278207.0, "deuda_vencida": 209705.0}, {"ROL": "2706-516", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 68502.0, "prio": "B"}, {"mes": "sept-26", "monto": 69003.0, "prio": "B"}, {"mes": "jun-26", "monto": 69134.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 206639.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 206639.0, "deuda_vencida": 138137.0}, {"ROL": "2706-517", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 68502.0, "prio": "B"}, {"mes": "sept-26", "monto": 69003.0, "prio": "B"}, {"mes": "jun-26", "monto": 69134.0, "prio": "B"}, {"mes": "abr-26", "monto": 71568.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 278207.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 278207.0, "deuda_vencida": 209705.0}, {"ROL": "3165-174", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITA", "REGION": "XVI [REGION DEL NUBLE]", "COMUNA": "CHILLAN", "PROYECTO": "PEAS", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 100712.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 100712.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 100712.0, "deuda_vencida": 0.0}, {"ROL": "3706-219", "EMPRESA": "CONSTRUCTORA MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "TERRENO SECTOR DOÑA JOSEFA", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 5370089.0, "prio": "B"}, {"mes": "sept-26", "monto": 5409333.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 10779422.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 10779422.0, "deuda_vencida": 5409333.0}, {"ROL": "4516-5", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "SALA DE VENTAS MELIPILLA", "ESTADO": "PATRIMONIO MALPO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "3706-221", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "TERRENO SECTOR DOÑA JOSEFA", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 12159133.0, "prio": "B"}, {"mes": "sept-26", "monto": 12247990.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 24407123.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 24407123.0, "deuda_vencida": 12247990.0}, {"ROL": "3709-459", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "NEYEN INSTALACION FAENA", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 4489840.0, "prio": "B"}, {"mes": "sept-26", "monto": 4522651.0, "prio": "B"}, {"mes": "jun-26", "monto": 4499705.0, "prio": "B"}, {"mes": "abr-26", "monto": 4658159.0, "prio": "B"}, {"mes": "nov-25", "monto": 4764806.0, "prio": "B"}, {"mes": "sept-25", "monto": 4848316.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 27783477.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 27783477.0, "deuda_vencida": 23293637.0}, {"ROL": "3883-6", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITAD", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "TERRENO SIN FUSIONAR - LOTEO ALTO MANQUE", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 1266465.0, "prio": "B"}, {"mes": "sept-26", "monto": 1275720.0, "prio": "B"}, {"mes": "jun-26", "monto": 1269465.0, "prio": "B"}, {"mes": "abr-26", "monto": 1314169.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 5125819.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 5125819.0, "deuda_vencida": 3859354.0}, {"ROL": "3883-7", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITAD", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "TERRENO SIN FUSIONAR - LOTEO ALTO MANQUE", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 1248076.0, "prio": "B"}, {"mes": "sept-26", "monto": 1257196.0, "prio": "B"}, {"mes": "jun-26", "monto": 1251037.0, "prio": "B"}, {"mes": "abr-26", "monto": 1295093.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 5051402.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 5051402.0, "deuda_vencida": 3803326.0}, {"ROL": "567-224", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITAD", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "LINARES", "PROYECTO": "SCK-SCP DOÑA AGUSTINA III (TODOS LOS EDIFICIOS)", "ESTADO": "PROYECTO EN VENTA", "cuotas": [{"mes": "nov-26", "monto": 2646892.0, "prio": "B"}, {"mes": "sept-26", "monto": 2666235.0, "prio": "A"}], "montos_por_prioridad": {"U": 0.0, "A": 2666235.0, "B": 2646892.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 5313127.0, "deuda_vencida": 2666235.0}, {"ROL": "3885-1", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITAD", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "TERRENO SIN FUSIONAR - LOTEO ALTO MANQUE", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 1220733.0, "prio": "B"}, {"mes": "sept-26", "monto": 1229653.0, "prio": "B"}, {"mes": "jun-26", "monto": 1223636.0, "prio": "B"}, {"mes": "abr-26", "monto": 1266725.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 4940747.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 4940747.0, "deuda_vencida": 3720014.0}, {"ROL": "432-1", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITAD", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "PARRAL", "PROYECTO": "SALA DE VENTAS SAN PEDRO - AV.LAUTARO 636 PORTAL ALAMEDA", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "4603-13", "EMPRESA": "INMOB E INVERSIONES MALPO LIMITADA", "REGION": "XVI [REGION DEL NUBLE]", "COMUNA": "CHILLAN", "PROYECTO": "PEAS", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 119654.0, "prio": "B"}, {"mes": "sept-26", "monto": 120528.0, "prio": "B"}, {"mes": "jun-26", "monto": 119893.0, "prio": "B"}, {"mes": "abr-26", "monto": 124116.0, "prio": "B"}, {"mes": "nov-25", "monto": 125449.0, "prio": "B"}, {"mes": "sept-25", "monto": 127649.0, "prio": "B"}, {"mes": "jun-25", "monto": 128484.0, "prio": "B"}, {"mes": "abr-25", "monto": 130949.0, "prio": "B"}, {"mes": "nov-24", "monto": 136751.0, "prio": "B"}, {"mes": "sept-24", "monto": 138987.0, "prio": "B"}, {"mes": "jun-24", "monto": 139542.0, "prio": "B"}, {"mes": "abr-24", "monto": 142560.0, "prio": "B"}, {"mes": "nov-23", "monto": 137366.0, "prio": "B"}, {"mes": "sept-23", "monto": 139930.0, "prio": "B"}, {"mes": "jun-23", "monto": 139703.0, "prio": "B"}, {"mes": "abr-23", "monto": 143203.0, "prio": "B"}, {"mes": "nov-22", "monto": 132961.0, "prio": "B"}, {"mes": "sept-22", "monto": 137177.0, "prio": "B"}, {"mes": "jun-22", "monto": 134689.0, "prio": "B"}, {"mes": "abr-22", "monto": 140496.0, "prio": "B"}, {"mes": "dic-21", "monto": 499570.0, "prio": "B"}, {"mes": "nov-21", "monto": 136279.0, "prio": "B"}, {"mes": "sept-21", "monto": 139331.0, "prio": "B"}, {"mes": "jun-21", "monto": 81554.0, "prio": "B"}, {"mes": "abr-21", "monto": 82808.0, "prio": "B"}, {"mes": "nov-20", "monto": 79731.0, "prio": "B"}, {"mes": "sept-20", "monto": 80960.0, "prio": "B"}, {"mes": "jun-20", "monto": 80864.0, "prio": "B"}, {"mes": "abr-20", "monto": 81635.0, "prio": "B"}, {"mes": "nov-19", "monto": 76468.0, "prio": "B"}, {"mes": "sept-19", "monto": 77203.0, "prio": "B"}, {"mes": "jun-19", "monto": 77536.0, "prio": "B"}, {"mes": "abr-19", "monto": 78716.0, "prio": "B"}, {"mes": "nov-18", "monto": 47402.0, "prio": "B"}, {"mes": "sept-18", "monto": 48026.0, "prio": "B"}, {"mes": "jun-18", "monto": 46280.0, "prio": "B"}, {"mes": "abr-18", "monto": 46873.0, "prio": "B"}, {"mes": "nov-17", "monto": 35482.0, "prio": "B"}, {"mes": "sept-17", "monto": 35768.0, "prio": "B"}, {"mes": "jun-15", "monto": 71411.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 4563984.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 4563984.0, "deuda_vencida": 4444330.0}, {"ROL": "4841-91", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITA", "REGION": "XVI [REGION DEL NUBLE]", "COMUNA": "CHILLAN", "PROYECTO": "S/PROYECTO", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "537-380", "EMPRESA": "CONSTRUCTORA MALPO LIMITADA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "LINARES", "PROYECTO": "VILLA ROSA LT A- 3 LT A 3 -B", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 24431.0, "prio": "B"}, {"mes": "sept-26", "monto": 24610.0, "prio": "B"}, {"mes": "jun-26", "monto": 24483.0, "prio": "B"}, {"mes": "abr-26", "monto": 25345.0, "prio": "B"}, {"mes": "nov-25", "monto": 25924.0, "prio": "B"}, {"mes": "sept-25", "monto": 26378.0, "prio": "B"}, {"mes": "jun-25", "monto": 26555.0, "prio": "B"}, {"mes": "abr-25", "monto": 27065.0, "prio": "B"}, {"mes": "nov-24", "monto": 27316.0, "prio": "B"}, {"mes": "sept-24", "monto": 27763.0, "prio": "B"}, {"mes": "jun-24", "monto": 25401.0, "prio": "B"}, {"mes": "abr-24", "monto": 25951.0, "prio": "B"}, {"mes": "nov-23", "monto": 24378.0, "prio": "B"}, {"mes": "sept-23", "monto": 24833.0, "prio": "B"}, {"mes": "jun-23", "monto": 22605.0, "prio": "B"}, {"mes": "abr-23", "monto": 23171.0, "prio": "B"}, {"mes": "nov-22", "monto": 21119.0, "prio": "B"}, {"mes": "sept-22", "monto": 21788.0, "prio": "B"}, {"mes": "jun-22", "monto": 19517.0, "prio": "B"}, {"mes": "abr-22", "monto": 20358.0, "prio": "B"}, {"mes": "nov-21", "monto": 16259.0, "prio": "B"}, {"mes": "sept-21", "monto": 16623.0, "prio": "B"}, {"mes": "jun-21", "monto": 16671.0, "prio": "B"}, {"mes": "abr-21", "monto": 16927.0, "prio": "B"}, {"mes": "nov-20", "monto": 17236.0, "prio": "B"}, {"mes": "sept-20", "monto": 17503.0, "prio": "B"}, {"mes": "jun-20", "monto": 17482.0, "prio": "B"}, {"mes": "abr-20", "monto": 17649.0, "prio": "B"}, {"mes": "nov-19", "monto": 18061.0, "prio": "B"}, {"mes": "sept-19", "monto": 18234.0, "prio": "B"}, {"mes": "jun-19", "monto": 18311.0, "prio": "B"}, {"mes": "abr-19", "monto": 18590.0, "prio": "B"}, {"mes": "nov-18", "monto": 18815.0, "prio": "B"}, {"mes": "sept-18", "monto": 19064.0, "prio": "B"}, {"mes": "jun-18", "monto": 19162.0, "prio": "B"}, {"mes": "abr-18", "monto": 19407.0, "prio": "B"}, {"mes": "nov-17", "monto": 134501.0, "prio": "B"}, {"mes": "sept-17", "monto": 135590.0, "prio": "B"}, {"mes": "jun-17", "monto": 61179.0, "prio": "B"}, {"mes": "abr-17", "monto": 61988.0, "prio": "B"}, {"mes": "nov-16", "monto": 57841.0, "prio": "B"}, {"mes": "sept-16", "monto": 58418.0, "prio": "B"}, {"mes": "jun-16", "monto": 53357.0, "prio": "B"}, {"mes": "abr-16", "monto": 54115.0, "prio": "B"}, {"mes": "nov-15", "monto": 49907.0, "prio": "B"}, {"mes": "sept-15", "monto": 50847.0, "prio": "B"}, {"mes": "jun-15", "monto": 46433.0, "prio": "B"}, {"mes": "abr-15", "monto": 47318.0, "prio": "B"}, {"mes": "nov-14", "monto": 43595.0, "prio": "B"}, {"mes": "sept-14", "monto": 44425.0, "prio": "B"}, {"mes": "jun-14", "monto": 40338.0, "prio": "B"}, {"mes": "abr-14", "monto": 41241.0, "prio": "B"}, {"mes": "nov-13", "monto": 38294.0, "prio": "B"}, {"mes": "sept-13", "monto": 38873.0, "prio": "B"}, {"mes": "jun-13", "monto": 36058.0, "prio": "B"}, {"mes": "abr-13", "monto": 36268.0, "prio": "B"}, {"mes": "nov-12", "monto": 27154.0, "prio": "B"}, {"mes": "sept-12", "monto": 27596.0, "prio": "B"}, {"mes": "jun-12", "monto": 27691.0, "prio": "B"}, {"mes": "abr-12", "monto": 27937.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 2015949.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 2015949.0, "deuda_vencida": 1991518.0}, {"ROL": "540-670", "EMPRESA": "CONSTRUCTORA MALPO LTDA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "LINARES", "PROYECTO": "SN MANUEL PC 2 LT B 1 -B 2", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 78608.0, "prio": "B"}, {"mes": "sept-26", "monto": 79183.0, "prio": "B"}, {"mes": "jun-26", "monto": 78758.0, "prio": "B"}, {"mes": "abr-26", "monto": 81531.0, "prio": "B"}, {"mes": "nov-25", "monto": 83567.0, "prio": "B"}, {"mes": "sept-25", "monto": 85031.0, "prio": "B"}, {"mes": "jun-25", "monto": 85600.0, "prio": "B"}, {"mes": "abr-25", "monto": 87243.0, "prio": "B"}, {"mes": "nov-24", "monto": 87815.0, "prio": "B"}, {"mes": "sept-24", "monto": 89251.0, "prio": "B"}, {"mes": "jun-24", "monto": 89608.0, "prio": "B"}, {"mes": "abr-24", "monto": 91547.0, "prio": "B"}, {"mes": "nov-23", "monto": 89400.0, "prio": "B"}, {"mes": "sept-23", "monto": 91070.0, "prio": "B"}, {"mes": "jun-23", "monto": 90924.0, "prio": "B"}, {"mes": "abr-23", "monto": 93202.0, "prio": "B"}, {"mes": "nov-22", "monto": 86690.0, "prio": "B"}, {"mes": "sept-22", "monto": 89439.0, "prio": "B"}, {"mes": "jun-22", "monto": 87816.0, "prio": "B"}, {"mes": "abr-22", "monto": 91602.0, "prio": "B"}, {"mes": "nov-21", "monto": 94445.0, "prio": "B"}, {"mes": "sept-21", "monto": 96560.0, "prio": "B"}, {"mes": "jun-21", "monto": 96849.0, "prio": "B"}, {"mes": "abr-21", "monto": 98339.0, "prio": "B"}, {"mes": "nov-20", "monto": 75628.0, "prio": "B"}, {"mes": "sept-20", "monto": 76793.0, "prio": "B"}, {"mes": "jun-20", "monto": 112533.0, "prio": "B"}, {"mes": "abr-20", "monto": 113606.0, "prio": "B"}, {"mes": "nov-19", "monto": 95250.0, "prio": "B"}, {"mes": "sept-19", "monto": 96165.0, "prio": "B"}, {"mes": "jun-19", "monto": 96645.0, "prio": "B"}, {"mes": "abr-19", "monto": 98116.0, "prio": "B"}, {"mes": "nov-18", "monto": 94463.0, "prio": "B"}, {"mes": "sept-18", "monto": 95707.0, "prio": "B"}, {"mes": "jun-18", "monto": 99704.0, "prio": "B"}, {"mes": "abr-18", "monto": 100983.0, "prio": "B"}, {"mes": "nov-17", "monto": 147652.0, "prio": "B"}, {"mes": "sept-17", "monto": 148846.0, "prio": "B"}, {"mes": "jun-17", "monto": 149063.0, "prio": "B"}, {"mes": "abr-17", "monto": 151035.0, "prio": "B"}, {"mes": "nov-16", "monto": 145804.0, "prio": "B"}, {"mes": "sept-16", "monto": 147259.0, "prio": "B"}, {"mes": "jun-16", "monto": 147223.0, "prio": "B"}, {"mes": "abr-16", "monto": 149313.0, "prio": "B"}, {"mes": "nov-15", "monto": 141352.0, "prio": "B"}, {"mes": "sept-15", "monto": 144013.0, "prio": "B"}, {"mes": "jun-15", "monto": 143804.0, "prio": "B"}, {"mes": "abr-15", "monto": 146545.0, "prio": "B"}, {"mes": "nov-14", "monto": 140409.0, "prio": "B"}, {"mes": "sept-14", "monto": 143084.0, "prio": "B"}, {"mes": "jun-14", "monto": 141921.0, "prio": "B"}, {"mes": "abr-14", "monto": 145097.0, "prio": "B"}, {"mes": "nov-13", "monto": 151107.0, "prio": "B"}, {"mes": "sept-13", "monto": 153391.0, "prio": "B"}, {"mes": "jun-13", "monto": 155183.0, "prio": "B"}, {"mes": "abr-13", "monto": 156089.0, "prio": "B"}, {"mes": "nov-12", "monto": 137738.0, "prio": "B"}, {"mes": "sept-12", "monto": 139982.0, "prio": "B"}, {"mes": "jun-12", "monto": 140458.0, "prio": "B"}, {"mes": "abr-12", "monto": 141705.0, "prio": "B"}, {"mes": "nov-11", "monto": 144822.0, "prio": "B"}, {"mes": "sept-11", "monto": 146693.0, "prio": "B"}, {"mes": "jun-11", "monto": 292018.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 7371277.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 7371277.0, "deuda_vencida": 7292669.0}, {"ROL": "567-236", "EMPRESA": "CONSTRUCTORA MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "LINARES", "PROYECTO": "DOÑA AGUSTINA IV", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "600-1", "EMPRESA": "CONSTRUCTORA MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "SAN CLEMENTE", "PROYECTO": "SCA - VALLES DEL ALBA DS19 148 VIV. SAN CLEMENTE", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 68183.0, "prio": "B"}, {"mes": "sept-26", "monto": 68681.0, "prio": "B"}, {"mes": "jun-26", "monto": 68327.0, "prio": "B"}, {"mes": "abr-26", "monto": 70733.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 275924.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 275924.0, "deuda_vencida": 207741.0}, {"ROL": "653-328", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "CURICO", "PROYECTO": "IB5 - PUERTA NORTE", "ESTADO": "PROYECTO EN VENTA", "cuotas": [{"mes": "nov-26", "monto": 673692.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 673692.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 673692.0, "deuda_vencida": 0.0}, {"ROL": "600-2", "EMPRESA": "CONSTRUCTORA MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "SAN CLEMENTE", "PROYECTO": "SCA - VALLES DEL ALBA DS19 148 VIV. SAN CLEMENTE", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 47240.0, "prio": "B"}, {"mes": "sept-26", "monto": 47585.0, "prio": "B"}, {"mes": "jun-26", "monto": 47341.0, "prio": "B"}, {"mes": "abr-26", "monto": 49008.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 191174.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 191174.0, "deuda_vencida": 143934.0}, {"ROL": "606-110", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITA", "REGION": "VI [REGION DEL LIBERTADOR BERNARDO OHIGGINS]", "COMUNA": "RENGO", "PROYECTO": "SBG - HACIENDA LAS PALMAS DS 19 206 VIV. RENGO", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "606-57", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MOLINA", "PROYECTO": "PEAS", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 77476.0, "prio": "B"}, {"mes": "sept-26", "monto": 78042.0, "prio": "B"}, {"mes": "jun-26", "monto": 77627.0, "prio": "B"}, {"mes": "abr-26", "monto": 80360.0, "prio": "B"}, {"mes": "nov-25", "monto": 82197.0, "prio": "B"}, {"mes": "sept-25", "monto": 83637.0, "prio": "B"}, {"mes": "jun-25", "monto": 84196.0, "prio": "B"}, {"mes": "abr-25", "monto": 85812.0, "prio": "B"}, {"mes": "nov-24", "monto": 88771.0, "prio": "B"}, {"mes": "sept-24", "monto": 90224.0, "prio": "B"}, {"mes": "jun-24", "monto": 146201.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 974543.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 974543.0, "deuda_vencida": 897067.0}, {"ROL": "607-147", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITA", "REGION": "VI [REGION DEL LIBERTADOR BERNARDO OHIGGINS]", "COMUNA": "RENGO", "PROYECTO": "1 NORTE 801 OF 801", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "608-2", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITA", "REGION": "VI [REGION DEL LIBERTADOR BERNARDO OHIGGINS]", "COMUNA": "RENGO", "PROYECTO": "SBM - HACIENDA LAS PALMAS DS 19 177 VIVIENDAS 2020 RENGO", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "693-159", "EMPRESA": "CONSTRUCTORA MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "SAN JAVIER", "PROYECTO": "SBR - BRISAS DE SAN JAVIER DS19 213 VIVIENDAS", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 55416.0, "prio": "B"}, {"mes": "sept-26", "monto": 55820.0, "prio": "B"}, {"mes": "jun-26", "monto": 55533.0, "prio": "B"}, {"mes": "abr-26", "monto": 57489.0, "prio": "B"}, {"mes": "nov-25", "monto": 58804.0, "prio": "B"}, {"mes": "sept-25", "monto": 59835.0, "prio": "B"}, {"mes": "jun-25", "monto": 60233.0, "prio": "B"}, {"mes": "abr-25", "monto": 61389.0, "prio": "B"}, {"mes": "nov-24", "monto": 63507.0, "prio": "B"}, {"mes": "sept-24", "monto": 64545.0, "prio": "B"}, {"mes": "jun-24", "monto": 64805.0, "prio": "B"}, {"mes": "abr-24", "monto": 66206.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 723582.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 723582.0, "deuda_vencida": 668166.0}, {"ROL": "693-386", "EMPRESA": "CONSTRUCTORA MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "SAN JAVIER", "PROYECTO": "SBS - BRISAS DE SAN JAVIER II ETAPA DS19 197 VIVIENDAS", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 28745.0, "prio": "B"}, {"mes": "sept-26", "monto": 28955.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 57700.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 57700.0, "deuda_vencida": 28955.0}, {"ROL": "738-103", "EMPRESA": "CONSTRUCTORA MALPO LTDA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "1 NORTE 801 OF 801", "ESTADO": "PATRIMONIO MALPO", "cuotas": [{"mes": "nov-26", "monto": 100521.0, "prio": "B"}, {"mes": "sept-26", "monto": 101255.0, "prio": "B"}, {"mes": "jun-26", "monto": 100735.0, "prio": "B"}, {"mes": "abr-26", "monto": 104282.0, "prio": "B"}, {"mes": "nov-25", "monto": 106666.0, "prio": "B"}, {"mes": "sept-25", "monto": 108535.0, "prio": "B"}, {"mes": "jun-25", "monto": 109261.0, "prio": "B"}, {"mes": "abr-25", "monto": 111357.0, "prio": "B"}, {"mes": "nov-24", "monto": 115200.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 957812.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 957812.0, "deuda_vencida": 857291.0}, {"ROL": "738-110", "EMPRESA": "CONSTRUCTORA MALPO LTDA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "1 NORTE 801 OF 808", "ESTADO": "PATRIMONIO MALPO", "cuotas": [{"mes": "nov-26", "monto": 140730.0, "prio": "B"}, {"mes": "sept-26", "monto": 141758.0, "prio": "B"}, {"mes": "jun-26", "monto": 141030.0, "prio": "B"}, {"mes": "abr-26", "monto": 145996.0, "prio": "B"}, {"mes": "nov-25", "monto": 149332.0, "prio": "B"}, {"mes": "sept-25", "monto": 151950.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 870796.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 870796.0, "deuda_vencida": 730066.0}, {"ROL": "738-155", "EMPRESA": "CONST MALPO LTDA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "1 ORIENTE 1230 EST 113", "ESTADO": "PATRIMONIO MALPO", "cuotas": [{"mes": "nov-26", "monto": 19063.0, "prio": "B"}, {"mes": "sept-26", "monto": 19202.0, "prio": "B"}, {"mes": "jun-26", "monto": 19104.0, "prio": "B"}, {"mes": "abr-26", "monto": 19777.0, "prio": "B"}, {"mes": "nov-25", "monto": 20228.0, "prio": "B"}, {"mes": "sept-25", "monto": 20582.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 117956.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 117956.0, "deuda_vencida": 98893.0}, {"ROL": "738-156", "EMPRESA": "CONST MALPO LTDA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "1 ORIENTE 1230 EST 114", "ESTADO": "PATRIMONIO MALPO", "cuotas": [{"mes": "nov-26", "monto": 19063.0, "prio": "B"}, {"mes": "sept-26", "monto": 19202.0, "prio": "B"}, {"mes": "jun-26", "monto": 19104.0, "prio": "B"}, {"mes": "abr-26", "monto": 19777.0, "prio": "B"}, {"mes": "nov-25", "monto": 20228.0, "prio": "B"}, {"mes": "sept-25", "monto": 20582.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 117956.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 117956.0, "deuda_vencida": 98893.0}, {"ROL": "693-387", "EMPRESA": "MUNOZ SUAREZ BENJAMIN ALEJANDRO", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "SAN JAVIER", "PROYECTO": "SBS - BRISAS DE SAN JAVIER II ETAPA DS19 197 VIVIENDAS", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 25953.0, "prio": "B"}, {"mes": "sept-26", "monto": 26143.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 52096.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 52096.0, "deuda_vencida": 26143.0}, {"ROL": "693-388", "EMPRESA": "CONSTRUCTORA MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "SAN JAVIER", "PROYECTO": "SBS - LOCAL COMERCIAL", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 29735.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 29735.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 29735.0, "deuda_vencida": 0.0}, {"ROL": "778-3", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "ESTACIONAMIENTO 1 ORIENTE 2 NORTE", "ESTADO": "PATRIMONIO MALPO", "cuotas": [{"mes": "nov-26", "monto": 1511438.0, "prio": "B"}, {"mes": "sept-26", "monto": 1522484.0, "prio": "B"}, {"mes": "jun-26", "monto": 1514960.0, "prio": "B"}, {"mes": "abr-26", "monto": 1568309.0, "prio": "B"}, {"mes": "nov-25", "monto": 1604331.0, "prio": "B"}, {"mes": "sept-25", "monto": 1632450.0, "prio": "B"}, {"mes": "jun-25", "monto": 1634840.0, "prio": "B"}, {"mes": "abr-25", "monto": 1666215.0, "prio": "B"}, {"mes": "nov-24", "monto": 1374349.0, "prio": "B"}, {"mes": "sept-24", "monto": 1396826.0, "prio": "B"}, {"mes": "jun-24", "monto": 1402757.0, "prio": "B"}, {"mes": "abr-24", "monto": 1433099.0, "prio": "B"}, {"mes": "dic-23", "monto": 5572663.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 23834721.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 23834721.0, "deuda_vencida": 22323283.0}, {"ROL": "7106-21", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "CURICO", "PROYECTO": "PEAS", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 547123.0, "prio": "B"}, {"mes": "sept-26", "monto": 551122.0, "prio": "B"}, {"mes": "jun-26", "monto": 548286.0, "prio": "B"}, {"mes": "abr-26", "monto": 567594.0, "prio": "B"}, {"mes": "nov-25", "monto": 580573.0, "prio": "B"}, {"mes": "sept-25", "monto": 590748.0, "prio": "B"}, {"mes": "jun-25", "monto": 594694.0, "prio": "B"}, {"mes": "abr-25", "monto": 606107.0, "prio": "B"}, {"mes": "nov-24", "monto": 282691.0, "prio": "B"}, {"mes": "sept-24", "monto": 287314.0, "prio": "B"}, {"mes": "jun-24", "monto": 288467.0, "prio": "B"}, {"mes": "abr-24", "monto": 294706.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 5739425.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 5739425.0, "deuda_vencida": 5192302.0}, {"ROL": "7107-39", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "CURICO", "PROYECTO": "I73 - PUERTA NORTE ETAPA 1, 85 VIV., 32 DPTOS CURICÓ 2021", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "718-22", "EMPRESA": "CONSTRUCTORA MALPO LTDA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MOLINA", "PROYECTO": "PEAS", "ESTADO": "SIN ESTADO", "cuotas": [{"mes": "nov-26", "monto": 49269.0, "prio": "B"}, {"mes": "sept-26", "monto": 49629.0, "prio": "B"}, {"mes": "jun-26", "monto": 49360.0, "prio": "B"}, {"mes": "abr-26", "monto": 51098.0, "prio": "B"}, {"mes": "nov-25", "monto": 52267.0, "prio": "B"}, {"mes": "sept-25", "monto": 53183.0, "prio": "B"}, {"mes": "jun-25", "monto": 53537.0, "prio": "B"}, {"mes": "abr-25", "monto": 54564.0, "prio": "B"}, {"mes": "nov-24", "monto": 34015.0, "prio": "B"}, {"mes": "sept-24", "monto": 34570.0, "prio": "B"}, {"mes": "jun-24", "monto": 34830.0, "prio": "B"}, {"mes": "abr-24", "monto": 35583.0, "prio": "B"}, {"mes": "nov-23", "monto": 18137.0, "prio": "B"}, {"mes": "sept-23", "monto": 18475.0, "prio": "B"}, {"mes": "jun-23", "monto": 18447.0, "prio": "B"}, {"mes": "abr-23", "monto": 18909.0, "prio": "B"}, {"mes": "nov-22", "monto": 18898.0, "prio": "B"}, {"mes": "sept-22", "monto": 19497.0, "prio": "B"}, {"mes": "jun-22", "monto": 19143.0, "prio": "B"}, {"mes": "abr-22", "monto": 19967.0, "prio": "B"}, {"mes": "nov-21", "monto": 17915.0, "prio": "B"}, {"mes": "sept-21", "monto": 18316.0, "prio": "B"}, {"mes": "jun-21", "monto": 18372.0, "prio": "B"}, {"mes": "abr-21", "monto": 18654.0, "prio": "B"}, {"mes": "nov-20", "monto": 18993.0, "prio": "B"}, {"mes": "sept-20", "monto": 19286.0, "prio": "B"}, {"mes": "jun-20", "monto": 19262.0, "prio": "B"}, {"mes": "abr-20", "monto": 19445.0, "prio": "B"}, {"mes": "nov-19", "monto": 19900.0, "prio": "B"}, {"mes": "sept-19", "monto": 20092.0, "prio": "B"}, {"mes": "jun-19", "monto": 20177.0, "prio": "B"}, {"mes": "abr-19", "monto": 20485.0, "prio": "B"}, {"mes": "nov-18", "monto": 20732.0, "prio": "B"}, {"mes": "sept-18", "monto": 21004.0, "prio": "B"}, {"mes": "jun-18", "monto": 20361.0, "prio": "B"}, {"mes": "abr-18", "monto": 20623.0, "prio": "B"}, {"mes": "jun-17", "monto": 21514.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 1038509.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 1038509.0, "deuda_vencida": 989240.0}, {"ROL": "941-5", "EMPRESA": "INMOB E INVERSIONES MALPO LIMITADA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "MOLINA", "PROYECTO": "S/PROYECTO", "ESTADO": "SIN ESTADO", "cuotas": [], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 0.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 0.0, "deuda_vencida": 0.0}, {"ROL": "2706-447", "EMPRESA": "OSORIO HENRIQUEZ KAREN YESENIA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "COBRO CLIENTE", "cuotas": [{"mes": "nov-26", "monto": 36983.0, "prio": "B"}, {"mes": "sept-26", "monto": 37253.0, "prio": "B"}, {"mes": "jun-26", "monto": 37547.0, "prio": "B"}, {"mes": "abr-26", "monto": 38870.0, "prio": "B"}, {"mes": "nov-25", "monto": 39294.0, "prio": "A"}, {"mes": "sept-25", "monto": 39983.0, "prio": "A"}, {"mes": "jun-25", "monto": 126114.0, "prio": "A"}, {"mes": "abr-25", "monto": 41387.0, "prio": "A"}], "montos_por_prioridad": {"U": 0.0, "A": 246778.0, "B": 150653.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 397431.0, "deuda_vencida": 360448.0}, {"ROL": "2706-449", "EMPRESA": "MARTINEZ SOBARZO CHRISTIAN RODRIGO", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "COBRO CLIENTE", "cuotas": [{"mes": "sept-26", "monto": 36934.0, "prio": "B"}, {"mes": "jun-26", "monto": 37230.0, "prio": "B"}, {"mes": "sept-25", "monto": 39641.0, "prio": "A"}, {"mes": "jun-25", "monto": 40263.0, "prio": "A"}, {"mes": "abr-25", "monto": 41036.0, "prio": "A"}], "montos_por_prioridad": {"U": 0.0, "A": 120940.0, "B": 74164.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 195104.0, "deuda_vencida": 195104.0}, {"ROL": "2706-479", "EMPRESA": "GARATE GONZALEZ ABRAHAM ISSAC", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "COBRO CLIENTE", "cuotas": [{"mes": "nov-26", "monto": 78953.0, "prio": "B"}, {"mes": "sept-26", "monto": 79530.0, "prio": "B"}, {"mes": "nov-25", "monto": 83829.0, "prio": "A"}, {"mes": "sept-25", "monto": 85299.0, "prio": "A"}, {"mes": "jun-25", "monto": 86227.0, "prio": "A"}, {"mes": "abr-25", "monto": 87881.0, "prio": "A"}], "montos_por_prioridad": {"U": 0.0, "A": 343236.0, "B": 158483.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 501719.0, "deuda_vencida": 422766.0}];
+        const EMBARGO_ROLES = [{"ROL": "201-131", "EMPRESA": "CONSTRUCTORA MALPO SPA", "REGION": "VI [REGION DEL LIBERTADOR BERNARDO OHIGGINS]", "COMUNA": "RENGO", "PROYECTO": "SCB - VILLA RENKU (PROCESO DE ELIMINACIÓN)", "ESTADO": "EMBARGO/ELIMINACION", "cuotas": [{"mes": "nov-26", "monto": 8919381.0, "prio": "B"}, {"mes": "sept-26", "monto": 8984562.0, "prio": "B"}, {"mes": "jun-26", "monto": 8938423.0, "prio": "B"}, {"mes": "abr-26", "monto": 9253184.0, "prio": "B"}], "montos_por_prioridad": {"U": 0.0, "A": 0.0, "B": 36095550.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 36095550.0, "deuda_vencida": 27176169.0}, {"ROL": "2706-230", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITAD", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "VICUNA MACKENNA 1652 LOTE B 5 EL MAITEN", "ESTADO": "EMBARGO", "cuotas": [{"mes": "nov-26", "monto": 6242592.0, "prio": "B"}, {"mes": "sept-26", "monto": 6288212.0, "prio": "B"}, {"mes": "jun-26", "monto": 6256369.0, "prio": "U"}, {"mes": "abr-26", "monto": 6476684.0, "prio": "U"}, {"mes": "dic-25", "monto": 13150884.0, "prio": "B"}, {"mes": "nov-25", "monto": 6624254.0, "prio": "B"}, {"mes": "sept-25", "monto": 6740354.0, "prio": "B"}, {"mes": "nov-24", "monto": 8411037.0, "prio": "B"}, {"mes": "sept-24", "monto": 8548593.0, "prio": "B"}, {"mes": "jun-24", "monto": 8583342.0, "prio": "B"}, {"mes": "abr-24", "monto": 8769005.0, "prio": "B"}, {"mes": "nov-23", "monto": 8368587.0, "prio": "B"}, {"mes": "sept-23", "monto": 8524792.0, "prio": "B"}, {"mes": "jun-23", "monto": 8511404.0, "prio": "B"}, {"mes": "abr-23", "monto": 8724705.0, "prio": "B"}, {"mes": "dic-22", "monto": 12560331.0, "prio": "B"}], "montos_por_prioridad": {"U": 12733053.0, "A": 0.0, "B": 120048092.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 132781145.0, "deuda_vencida": 126538553.0}, {"ROL": "2706-231", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITAD", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "V MACKENNA LT B 6 1651652 LOTE B 6 EL MAITEN", "ESTADO": "EMBARGO", "cuotas": [{"mes": "nov-26", "monto": 9310130.0, "prio": "B"}, {"mes": "sept-26", "monto": 9378167.0, "prio": "B"}, {"mes": "jun-26", "monto": 9330439.0, "prio": "U"}, {"mes": "abr-26", "monto": 9659005.0, "prio": "U"}, {"mes": "dic-25", "monto": 19612690.0, "prio": "B"}, {"mes": "nov-25", "monto": 9879313.0, "prio": "B"}, {"mes": "sept-25", "monto": 10052463.0, "prio": "B"}, {"mes": "nov-24", "monto": 12545885.0, "prio": "B"}, {"mes": "sept-24", "monto": 12751065.0, "prio": "B"}, {"mes": "jun-24", "monto": 12802657.0, "prio": "B"}, {"mes": "abr-24", "monto": 13079588.0, "prio": "B"}, {"mes": "dic-23", "monto": 29445840.0, "prio": "B"}, {"mes": "nov-23", "monto": 12481899.0, "prio": "B"}, {"mes": "sept-23", "monto": 12714883.0, "prio": "B"}, {"mes": "jun-23", "monto": 12694696.0, "prio": "B"}], "montos_por_prioridad": {"U": 18989444.0, "A": 0.0, "B": 176749276.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 195738720.0, "deuda_vencida": 186428590.0}, {"ROL": "2706-233", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO SPA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "VICUNA MACKENNA 1652 LOTE B 8 EL MAITEN", "ESTADO": "EMBARGO", "cuotas": [{"mes": "nov-26", "monto": 5819771.0, "prio": "B"}, {"mes": "sept-26", "monto": 5862301.0, "prio": "B"}, {"mes": "jun-26", "monto": 5832649.0, "prio": "U"}, {"mes": "abr-26", "monto": 6038042.0, "prio": "U"}, {"mes": "nov-25", "monto": 6175587.0, "prio": "B"}, {"mes": "sept-25", "monto": 6283824.0, "prio": "B"}], "montos_por_prioridad": {"U": 11870691.0, "A": 0.0, "B": 24141483.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 36012174.0, "deuda_vencida": 30192403.0}, {"ROL": "3706-207", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "TERRENO DOÑA JOSEFA NORTE-ORIENTE", "ESTADO": "EMBARGO", "cuotas": [{"mes": "nov-26", "monto": 2273434.0, "prio": "B"}, {"mes": "sept-26", "monto": 2290048.0, "prio": "B"}, {"mes": "jun-26", "monto": 2278580.0, "prio": "B"}, {"mes": "abr-26", "monto": 2358819.0, "prio": "B"}, {"mes": "nov-25", "monto": 2412909.0, "prio": "U"}, {"mes": "sept-25", "monto": 2455200.0, "prio": "U"}, {"mes": "jun-25", "monto": 2471831.0, "prio": "B"}, {"mes": "abr-25", "monto": 2519268.0, "prio": "B"}, {"mes": "nov-24", "monto": 2606453.0, "prio": "B"}, {"mes": "sept-24", "monto": 2649081.0, "prio": "B"}, {"mes": "jun-24", "monto": 2660029.0, "prio": "B"}], "montos_por_prioridad": {"U": 4868109.0, "A": 0.0, "B": 22107543.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 26975652.0, "deuda_vencida": 24702218.0}, {"ROL": "3706-209", "EMPRESA": "INMOBILIARIA E INVERSIONES MALPO LIMITA", "REGION": "VII [REGION DEL MAULE]", "COMUNA": "TALCA", "PROYECTO": "TERRENO DOÑA JOSEFA NORTE-ORIENTE", "ESTADO": "EMBARGO", "cuotas": [{"mes": "nov-26", "monto": 827164.0, "prio": "B"}, {"mes": "sept-26", "monto": 833209.0, "prio": "B"}, {"mes": "jun-26", "monto": 829230.0, "prio": "B"}, {"mes": "abr-26", "monto": 858431.0, "prio": "B"}, {"mes": "nov-25", "monto": 878228.0, "prio": "U"}, {"mes": "sept-25", "monto": 893620.0, "prio": "U"}, {"mes": "jun-25", "monto": 899823.0, "prio": "U"}, {"mes": "abr-25", "monto": 917092.0, "prio": "U"}, {"mes": "nov-24", "monto": 949007.0, "prio": "B"}, {"mes": "sept-24", "monto": 964527.0, "prio": "B"}, {"mes": "jun-24", "monto": 968722.0, "prio": "B"}, {"mes": "abr-24", "monto": 989677.0, "prio": "B"}, {"mes": "dic-23", "monto": 3061545.0, "prio": "B"}, {"mes": "nov-23", "monto": 446705.0, "prio": "B"}, {"mes": "sept-23", "monto": 455043.0, "prio": "B"}], "montos_por_prioridad": {"U": 3588763.0, "A": 0.0, "B": 11183260.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 14772023.0, "deuda_vencida": 13944859.0}];
+        const COBRO_ROLES = [{"ROL": "2706-447", "EMPRESA": "OSORIO HENRIQUEZ KAREN YESENIA", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "COBRO CLIENTE", "cuotas": [{"mes": "nov-26", "monto": 36983.0, "prio": "B"}, {"mes": "sept-26", "monto": 37253.0, "prio": "B"}, {"mes": "jun-26", "monto": 37547.0, "prio": "B"}, {"mes": "abr-26", "monto": 38870.0, "prio": "B"}, {"mes": "nov-25", "monto": 39294.0, "prio": "A"}, {"mes": "sept-25", "monto": 39983.0, "prio": "A"}, {"mes": "jun-25", "monto": 126114.0, "prio": "A"}, {"mes": "abr-25", "monto": 41387.0, "prio": "A"}], "montos_por_prioridad": {"U": 0.0, "A": 246778.0, "B": 150653.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 397431.0, "deuda_vencida": 360448.0}, {"ROL": "2706-449", "EMPRESA": "MARTINEZ SOBARZO CHRISTIAN RODRIGO", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "COBRO CLIENTE", "cuotas": [{"mes": "sept-26", "monto": 36934.0, "prio": "B"}, {"mes": "jun-26", "monto": 37230.0, "prio": "B"}, {"mes": "sept-25", "monto": 39641.0, "prio": "A"}, {"mes": "jun-25", "monto": 40263.0, "prio": "A"}, {"mes": "abr-25", "monto": 41036.0, "prio": "A"}], "montos_por_prioridad": {"U": 0.0, "A": 120940.0, "B": 74164.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 195104.0, "deuda_vencida": 195104.0}, {"ROL": "2706-479", "EMPRESA": "GARATE GONZALEZ ABRAHAM ISSAC", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "COBRO CLIENTE", "cuotas": [{"mes": "nov-26", "monto": 78953.0, "prio": "B"}, {"mes": "sept-26", "monto": 79530.0, "prio": "B"}, {"mes": "nov-25", "monto": 83829.0, "prio": "A"}, {"mes": "sept-25", "monto": 85299.0, "prio": "A"}, {"mes": "jun-25", "monto": 86227.0, "prio": "A"}, {"mes": "abr-25", "monto": 87881.0, "prio": "A"}], "montos_por_prioridad": {"U": 0.0, "A": 343236.0, "B": 158483.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 501719.0, "deuda_vencida": 422766.0}, {"ROL": "2706-480", "EMPRESA": "SAEZ ORTIZ CESAR MARCELO", "REGION": "XIII [REGION METROPOLITANA DE SANTIAGO]", "COMUNA": "MELIPILLA", "PROYECTO": "IA1 - ALTOS DEL MAITEN 7 y 8 111 VIV INM (CONDOMINIO II)", "ESTADO": "DEVOLUCION CLIENTE", "cuotas": [{"mes": "nov-26", "monto": 68185.0, "prio": "B"}, {"mes": "sept-26", "monto": 68683.0, "prio": "B"}, {"mes": "nov-25", "monto": 69983.0, "prio": "A"}, {"mes": "sept-25", "monto": 71019.0, "prio": "A"}, {"mes": "jun-25", "monto": 72189.0, "prio": "A"}, {"mes": "abr-25", "monto": 73485.0, "prio": "A"}], "montos_por_prioridad": {"U": 0.0, "A": 286676.0, "B": 136868.0, "N": 0.0, "C": 0.0, "NC": 0.0}, "deuda_total": 136868.0, "deuda_vencida": 68683.0}];
+        
+        let selectedPrioritiesTodos = new Set();
+        let selectedPrioritiesEmbargo = new Set();
+        let selectedPrioritiesCobro = new Set(['A']); // SIEMPRE ACTIVO
+        let sortTodos = { column: null, direction: 'asc' };
+        let sortEmbargo = { column: null, direction: 'asc' };
+        let sortCobro = { column: null, direction: 'asc' };
+        
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById('tab-' + tab).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tab === 'todos') {
+                renderTodos();
+            } else if (tab === 'embargo') {
+                renderEmbargo();
+            } else if (tab === 'cobro') {
+                renderCobro();
+            }
+        }
+        
+        function formatCurrency(num) {
+            if (!num || isNaN(num)) return '$0';
+            return '$' + Math.round(num).toLocaleString('es-CL');
+        }
+        
+        function togglePriority(prio, tab) {
+            // En Cobro Cliente, el botón está siempre activo - NO hacer nada
+            if (tab === 'cobro') {
+                return;
+            }
+            
+            const selectedSet = tab === 'todos' ? selectedPrioritiesTodos : selectedPrioritiesEmbargo;
+            const btnId = tab === 'embargo' ? 'btn-embargo-' + prio : 'btn-' + prio;
+            
+            if (selectedSet.has(prio)) {
+                selectedSet.delete(prio);
+            } else {
+                selectedSet.add(prio);
+            }
+            
+            document.getElementById(btnId).classList.toggle('selected');
+            
+            if (tab === 'todos') renderTodos();
+            else if (tab === 'embargo') renderEmbargo();
+        }
+        
+        function toggleExpandible(rol, tab) {
+            const prefix = tab === 'embargo' ? 'embargo-' : (tab === 'cobro' ? 'cobro-' : '');
+            const row = document.getElementById('expandible-' + prefix + rol);
+            const icon = document.getElementById('icon-' + prefix + rol);
+            
+            if (row) {
+                row.classList.toggle('open');
+                icon.classList.toggle('open');
+            }
+        }
+        
+        function toggleSort(column, tab) {
+            const sortState = tab === 'todos' ? sortTodos : (tab === 'embargo' ? sortEmbargo : sortCobro);
+            
+            if (sortState.column === column) {
+                sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortState.column = column;
+                sortState.direction = 'asc';
+            }
+            
+            if (tab === 'todos') renderTodos();
+            else if (tab === 'embargo') renderEmbargo();
+            else if (tab === 'cobro') renderCobro();
+        }
+        
+        function sortData(data, montos, sortState) {
+            if (!sortState.column) return data;
+            
+            const column = sortState.column;
+            return [...data].sort((a, b) => {
+                let aVal, bVal;
+                
+                if (column === 'MONTO') {
+                    aVal = montos[a.ROL] || 0;
+                    bVal = montos[b.ROL] || 0;
+                } else {
+                    aVal = a[column] || '';
+                    bVal = b[column] || '';
+                }
+                
+                const aNum = parseFloat(aVal);
+                const bNum = parseFloat(bVal);
+                
+                if (!isNaN(aNum) && !isNaN(bNum)) {
+                    return sortState.direction === 'asc' ? aNum - bNum : bNum - aNum;
+                }
+                
+                const aStr = String(aVal).toLowerCase();
+                const bStr = String(bVal).toLowerCase();
+                
+                return sortState.direction === 'asc' ? aStr.localeCompare(bStr) : bStr.localeCompare(aStr);
+            });
+        }
+        
+        function renderTable(data, selectedSet, searchInputId, tableBodyId, tabPrefix = '', sortState = null, tab = 'todos') {
+            const search = document.getElementById(searchInputId).value.toLowerCase();
+            
+            let filtered = data.filter(rol => {
+                const matchSearch = !search || 
+                    (rol.ROL && rol.ROL.toLowerCase().includes(search)) ||
+                    (rol.PROYECTO && rol.PROYECTO.toLowerCase().includes(search));
+                
+                let hasPriority = true;
+                if (selectedSet.size > 0) {
+                    hasPriority = Object.keys(rol.montos_por_prioridad).some(p => 
+                        selectedSet.has(p) && rol.montos_por_prioridad[p] > 0
+                    );
+                }
+                
+                return matchSearch && hasPriority;
+            });
+            
+            const montos = {};
+            filtered.forEach(rol => {
+                let monto = 0;
+                if (selectedSet.size > 0) {
+                    selectedSet.forEach(p => {
+                        monto += rol.montos_por_prioridad[p] || 0;
+                    });
+                } else {
+                    monto = rol.deuda_total;
+                }
+                montos[rol.ROL] = monto;
+            });
+            
+            if (sortState) {
+                filtered = sortData(filtered, montos, sortState);
+            }
+            
+            const tbody = document.getElementById(tableBodyId);
+            tbody.innerHTML = '';
+            
+            if (!filtered.length) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #9e9e9e;">Sin resultados</td></tr>';
+                return;
+            }
+            
+            document.querySelectorAll('#tab-' + (tabPrefix === 'embargo-' ? 'embargo' : (tabPrefix === 'cobro-' ? 'cobro' : 'todos')) + ' th').forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+                if (sortState && th.getAttribute('data-column') === sortState.column) {
+                    th.classList.add('sort-' + sortState.direction);
+                }
+            });
+            
+            filtered.forEach(rol => {
+                const montoAMostrar = montos[rol.ROL];
+                
+                const expandId = tabPrefix + rol.ROL;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><div class="rol-cell" onclick="toggleExpandible('${rol.ROL}', '${tabPrefix === 'embargo-' ? 'embargo' : (tabPrefix === 'cobro-' ? 'cobro' : 'todos')}')">
+                        <span class="toggle-icon" id="icon-${expandId}">▶</span>
+                        ${rol.ROL}
+                    </div></td>
+                    <td>${rol.PROYECTO || '—'}</td>
+                    <td>${rol.COMUNA || '—'}</td>
+                    <td class="text-secondary">${rol.ESTADO || '—'}</td>
+                    <td class="text-right">${formatCurrency(montoAMostrar)}</td>
+                `;
+                tbody.appendChild(tr);
+                
+                const expandRow = document.createElement('tr');
+                expandRow.id = 'expandible-' + expandId;
+                expandRow.className = 'expandible-row';
+                
+                let cuotasHTML = '<div class="expandible-content"><strong>Cuotas:</strong><br>';
+                
+                let cuotasAMostrar = rol.cuotas;
+                if (selectedSet.size > 0) {
+                    cuotasAMostrar = rol.cuotas.filter(c => selectedSet.has(c.prio));
+                }
+                
+                cuotasAMostrar.forEach(cuota => {
+                    cuotasHTML += `
+                        <div class="cuota-item">
+                            <span class="cuota-nombre">${cuota.mes}</span>
+                            <span class="cuota-valor">${formatCurrency(cuota.monto)}</span>
+                        </div>
+                    `;
+                });
+                cuotasHTML += '</div>';
+                
+                expandRow.innerHTML = `<td colspan="5">${cuotasHTML}</td>`;
+                tbody.appendChild(expandRow);
+            });
+        }
+        
+        function renderTodos() {
+            const totales = {'U': 0, 'A': 0, 'B': 0, 'N': 0};
+            let deudaTotal = 0;
+            let deudaVencida = 0;
+            
+            TODOS_ROLES.forEach(rol => {
+                Object.keys(totales).forEach(p => {
+                    totales[p] += rol.montos_por_prioridad[p] || 0;
+                });
+                deudaTotal += rol.deuda_total;
+                deudaVencida += rol.deuda_vencida;
+            });
+            
+            document.getElementById('deudaTotal').textContent = formatCurrency(deudaTotal);
+            document.getElementById('deudaVencida').textContent = formatCurrency(deudaVencida);
+            document.getElementById('totalRoles').textContent = TODOS_ROLES.length;
+            document.getElementById('debt-N').textContent = formatCurrency(totales['N']);
+            document.getElementById('debt-B').textContent = formatCurrency(totales['B']);
+            document.getElementById('debt-A').textContent = formatCurrency(totales['A']);
+            document.getElementById('debt-U').textContent = formatCurrency(totales['U']);
+            
+            renderTable(TODOS_ROLES, selectedPrioritiesTodos, 'searchInput', 'tableBody', '', sortTodos, 'todos');
+        }
+        
+        function renderEmbargo() {
+            const totales = {'U': 0, 'A': 0, 'B': 0, 'N': 0};
+            let deudaTotal = 0;
+            let deudaVencida = 0;
+            
+            EMBARGO_ROLES.forEach(rol => {
+                Object.keys(totales).forEach(p => {
+                    totales[p] += rol.montos_por_prioridad[p] || 0;
+                });
+                deudaTotal += rol.deuda_total;
+                deudaVencida += rol.deuda_vencida;
+            });
+            
+            document.getElementById('totalEmbargoGeneral').textContent = formatCurrency(deudaTotal);
+            document.getElementById('totalEmbargoVencida').textContent = formatCurrency(deudaVencida);
+            document.getElementById('totalEmbargoRoles').textContent = EMBARGO_ROLES.length;
+            document.getElementById('debt-embargo-N').textContent = formatCurrency(totales['N']);
+            document.getElementById('debt-embargo-B').textContent = formatCurrency(totales['B']);
+            document.getElementById('debt-embargo-A').textContent = formatCurrency(totales['A']);
+            document.getElementById('debt-embargo-U').textContent = formatCurrency(totales['U']);
+            
+            renderTable(EMBARGO_ROLES, selectedPrioritiesEmbargo, 'searchInputEmbargo', 'tableBodyEmbargo', 'embargo-', sortEmbargo, 'embargo');
+        }
+        
+        function renderCobro() {
+            const totales = {'A': 0};
+            let totalGeneral = 0;
+            
+            COBRO_ROLES.forEach(rol => {
+                totales['A'] += rol.montos_por_prioridad['A'] || 0;
+                totalGeneral += rol.montos_por_prioridad['A'] || 0;
+            });
+            
+            document.getElementById('totalCobrGeneral').textContent = formatCurrency(totalGeneral);
+            document.getElementById('totalCobrRoles').textContent = COBRO_ROLES.length;
+            document.getElementById('debt-cobro-A').textContent = formatCurrency(totales['A']);
+            
+            const now = new Date();
+            document.getElementById('updateDateCobro').textContent = now.toLocaleDateString('es-CL');
+            
+            // Marcar burbuja como selected (siempre activa)
+            document.getElementById('btn-cobro-A').classList.add('selected');
+            
+            renderTable(COBRO_ROLES, selectedPrioritiesCobro, 'searchInputCobro', 'tableBodyCobro', 'cobro-', sortCobro, 'cobro');
+        }
+        
+        // Event listeners
+        ['N', 'B', 'A', 'U'].forEach(p => {
+            document.getElementById('btn-' + p).addEventListener('click', () => togglePriority(p, 'todos'));
+            document.getElementById('btn-embargo-' + p).addEventListener('click', () => togglePriority(p, 'embargo'));
+        });
+        
+        // NO agregar listener para btn-cobro-C
+        
+        document.getElementById('searchInput').addEventListener('input', renderTodos);
+        document.getElementById('searchInputEmbargo').addEventListener('input', renderEmbargo);
+        document.getElementById('searchInputCobro').addEventListener('input', renderCobro);
+        
+        // Headers ordenamiento
+        const tabsTodos = document.querySelectorAll('#tab-todos th[data-column]');
+        tabsTodos.forEach(th => {
+            th.addEventListener('click', () => toggleSort(th.getAttribute('data-column'), 'todos'));
+        });
+        
+        const tabsEmbargo = document.querySelectorAll('#tab-embargo th[data-column]');
+        tabsEmbargo.forEach(th => {
+            th.addEventListener('click', () => toggleSort(th.getAttribute('data-column'), 'embargo'));
+        });
+        
+        const tabsCobro = document.querySelectorAll('#tab-cobro th[data-column]');
+        tabsCobro.forEach(th => {
+            th.addEventListener('click', () => toggleSort(th.getAttribute('data-column'), 'cobro'));
+        });
+        
+        renderTodos();
+    </script>
+</body>
+</html>
